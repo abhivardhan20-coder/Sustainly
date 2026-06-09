@@ -3,6 +3,7 @@ import { useSustainlyStore, ChatMessage } from '../store/useSustainlyStore';
 import { Sparkles, CheckCircle, Send, Mic, Camera, Trees, Lightbulb, Car, Bus, Bike, Utensils, Home, X } from 'lucide-react';
 import { format } from 'date-fns';
 import BorderGlow from '../components/BorderGlow';
+import { auth } from '../lib/firebase';
 
 import TextType from '../components/TextType';
 
@@ -40,9 +41,13 @@ export default function ChatLogger() {
 
     try {
       const recentHistory = messages.slice(-20);
+      const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
       const response = await fetch('/api/log', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           userMessage: userMsg,
           profile,

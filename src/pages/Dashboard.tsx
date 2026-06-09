@@ -6,6 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import BorderGlow from '../components/BorderGlow';
 import CountUp from '../components/CountUp';
 import ScrollVelocity from '../components/ScrollVelocity';
+import { auth } from '../lib/firebase';
 
 const BADGES = [
   { id: 'first_step', title: 'First Step', desc: 'Logged your first activity', icon: Footprints, condition: (s: any) => Object.keys(s.dailyLogs).length > 0 },
@@ -32,9 +33,13 @@ export default function Dashboard() {
     let isMounted = true;
     const fetchInsights = async () => {
       try {
+        const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
         const response = await fetch('/api/insights', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ profile, history: dailyLogs }),
         });
         const data = await response.json();

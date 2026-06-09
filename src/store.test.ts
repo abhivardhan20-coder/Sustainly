@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+/** @vitest-environment jsdom */
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useSustainlyStore } from './store/useSustainlyStore';
 
 describe('Sustainly Store', () => {

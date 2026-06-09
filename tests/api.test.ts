@@ -1,13 +1,29 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app, startServer } from '../server';
-import { generateInsights, generateActivityLog } from '../lib/gemini';
+import { generateInsights, generateActivityLog } from '../server/services/geminiService';
 
 // Mock the Gemini service functions
-vi.mock('../lib/gemini', () => ({
-  generateInsights: vi.fn(),
-  generateActivityLog: vi.fn(),
+vi.mock('../server/services/geminiService', () => ({
+  generateInsights: vi.fn().mockResolvedValue(['Mock tip 1', 'Mock tip 2']),
+  generateActivityLog: vi.fn().mockResolvedValue({
+    activities: [{ id: '1', type: 'transport', description: 'Mock', points: 10, icon: 'bike' }],
+    message: 'Great job!',
+    suggestedAction: { title: 'Mock Action', description: 'Mock', btnText: 'Do it' }
+  })
 }));
+
+vi.mock('firebase-admin', () => {
+  return {
+    default: {
+      apps: [],
+      initializeApp: vi.fn(),
+      auth: () => ({
+        verifyIdToken: vi.fn().mockResolvedValue({ uid: 'user123' })
+      })
+    }
+  };
+});
 
 describe('AI API Endpoints (Integration Style)', () => {
   beforeAll(async () => {
@@ -23,6 +39,7 @@ describe('AI API Endpoints (Integration Style)', () => {
 
     const response = await request(app)
       .post('/api/insights')
+      .set('Authorization', 'Bearer valid-token')
       .send({
         profile: { diet: 'vegan' },
         history: []
@@ -54,6 +71,7 @@ describe('AI API Endpoints (Integration Style)', () => {
 
     const response = await request(app)
       .post('/api/log')
+      .set('Authorization', 'Bearer valid-token')
       .send({
         userMessage: "I took the metro to office today",
         profile: { diet: 'vegetarian' },
@@ -69,6 +87,7 @@ describe('AI API Endpoints (Integration Style)', () => {
   it('POST /api/log - should validate input', async () => {
     const response = await request(app)
       .post('/api/log')
+      .set('Authorization', 'Bearer valid-token')
       .send({ userMessage: '' });
 
     expect(response.status).toBe(400);
