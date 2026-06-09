@@ -17,17 +17,23 @@ export interface SuggestedAction {
   description: string;
   btnText: string;
 }
-
 export interface LogAnalysisResult {
   activities: Activity[];
   message: string;
   suggestedAction: SuggestedAction;
 }
 
+export interface UserProfile {
+  diet?: string;
+  region?: string;
+  commute?: string;
+  [key: string]: any;
+}
+
 // Generate personalized sustainability insights
 export async function generateInsights(
-  profile: any,
-  history: any
+  profile: UserProfile | null,
+  history: any[]
 ): Promise<string[]> {
   const systemPrompt = `You are a sustainability expert AI. Based on the user's profile and recent activities, generate 3 to 5 short, impactful sustainability tips or facts. Each tip MUST be brief, actionable, and formatted nicely with a relevant emoji at the start. Example: "🚴 Biking 3 days/week saves 1k lbs CO2". Do not number the list or use dashes, just return an array of strings. Do not invent completely unrelated or inaccurate facts. Focus on areas they haven't improved yet, or encourage their current good habits.
 
@@ -60,8 +66,8 @@ ${JSON.stringify(history)}
 // Generate structured activity log from user message (and optional image)
 export async function generateActivityLog(params: {
   userMessage?: string;
-  profile?: any;
-  history?: any;
+  profile?: UserProfile;
+  history?: any[];
   imageBase64?: string;
 }): Promise<LogAnalysisResult> {
   const { userMessage, profile, history, imageBase64 } = params;
