@@ -1,0 +1,297 @@
+import React, { useState, useRef } from 'react';
+import { useSustainlyStore } from '../store/useSustainlyStore';
+import { User, Activity, Flame, Leaf, Settings, LogOut, ChartNoAxesCombined, Download, Upload, Moon, Sun } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import BorderGlow from '../components/BorderGlow';
+import CountUp from '../components/CountUp';
+import { signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+
+export default function Profile() {
+  const { profile, streak, dailyLogs, resetAllData, clearActivityLogs, theme, setTheme } = useSustainlyStore();
+  const navigate = useNavigate();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showClearLogsConfirm, setShowClearLogsConfirm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  if (!profile) return null;
+
+  const allActivities = Object.values(dailyLogs).flatMap(log => log.activities);
+  const totalPoints = allActivities.reduce((acc, curr) => acc + (curr.points || 0), 0);
+  const totalLogs = allActivities.length;
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      resetAllData();
+      navigate('/');
+    } catch (e) {
+      console.error('Logout failed', e);
+    }
+  };
+
+  const handleExport = () => {
+    const state = useSustainlyStore.getState();
+    const data = {
+      profile: state.profile,
+      dailyLogs: state.dailyLogs,
+      garden: state.garden,
+      streak: state.streak,
+      lastLoggedDate: state.lastLoggedDate,
+      todaysActions: state.todaysActions,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sustainly-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+        if (data.profile) {
+          useSustainlyStore.setState({
+            profile: data.profile,
+            dailyLogs: data.dailyLogs || {},
+            garden: data.garden || { trees: 0, flowers: 0, lastGrown: new Date().toISOString() },
+            streak: data.streak || 0,
+            lastLoggedDate: data.lastLoggedDate || null,
+            todaysActions: data.todaysActions || []
+          });
+          alert('Data imported successfully! The system has been configured with the new data.');
+        } else {
+          alert('Invalid data format. No profile found.');
+        }
+      } catch (err) {
+        alert('Error parsing JSON file. Please ensure it is a valid backup.');
+        console.error(err);
+      }
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  return (
+    <div className="flex flex-col gap-6 lg:gap-8 animate-in fade-in duration-500 p-4 lg:p-8 max-w-4xl mx-auto w-full">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold text-on-surface">Your Profile</h2>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <button 
+            onClick={() => navigate('/onboarding')}
+            className="text-primary hover:bg-primary-container/30 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors text-sm"
+          >
+            <Settings size={16} /> Edit
+          </button>
+          <button 
+            onClick={() => setShowLogoutConfirm(true)}
+            className="text-error hover:bg-error-container/30 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors text-sm"
+          >
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
+      </div>
+
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-surface/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 max-w-sm w-full shadow-lg border border-surface-variant/40 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-on-surface mb-2">Confirm Logout</h3>
+            <p className="text-on-surface-variant text-sm mb-6">
+              Are you sure you want to log out and clear all your local data? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 rounded-lg font-semibold text-on-surface-variant hover:bg-surface-variant/50 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-lg font-semibold bg-error text-on-error hover:bg-error/90 transition-colors text-sm"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showClearLogsConfirm && (
+        <div className="fixed inset-0 bg-surface/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 max-w-sm w-full shadow-lg border border-surface-variant/40 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-on-surface mb-2">Clear All Logs</h3>
+            <p className="text-on-surface-variant text-sm mb-6">
+              Are you sure you want to clear your daily logs, chats, and garden data? Your profile details will remain intact. This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setShowClearLogsConfirm(false)}
+                className="px-4 py-2 rounded-lg font-semibold text-on-surface-variant hover:bg-surface-variant/50 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  clearActivityLogs();
+                  setShowClearLogsConfirm(false);
+                }}
+                className="px-4 py-2 rounded-lg font-semibold bg-error text-on-error hover:bg-error/90 transition-colors text-sm"
+              >
+                Clear Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Profile Card */}
+        <BorderGlow backgroundColor="#ffffff" borderRadius={16} className="md:col-span-1 shadow-sm h-full">
+          <div className="p-8 flex flex-col items-center text-center h-full">
+            <div className="w-24 h-24 rounded-full border-[3px] border-primary-container bg-surface-variant flex items-center justify-center overflow-hidden mb-4 shadow-sm text-3xl font-bold text-on-surface">
+            {profile.name.charAt(0).toUpperCase()}
+          </div>
+          <h3 className="text-2xl font-bold text-primary mb-1">{profile.name}</h3>
+          <p className="text-on-surface-variant font-medium text-sm flex items-center gap-1 mb-6">
+            <span className="capitalize">{profile.city}</span> Environment
+          </p>
+          
+          <div className="w-full flex flex-col gap-3 text-left">
+            <div className="bg-surface-container-low px-4 py-3 rounded-xl flex items-start justify-between gap-4 text-sm">
+              <span className="text-on-surface-variant font-semibold whitespace-nowrap pt-0.5">Diet</span>
+              <span className="font-bold text-primary capitalize text-right">{profile.diet}</span>
+            </div>
+            <div className="bg-surface-container-low px-4 py-3 rounded-xl flex items-start justify-between gap-4 text-sm">
+              <span className="text-on-surface-variant font-semibold whitespace-nowrap pt-0.5">Commute</span>
+              <span className="font-bold text-primary capitalize text-right">{profile.primaryCommute.join(', ')}</span>
+            </div>
+            <div className="bg-surface-container-low px-4 py-3 rounded-xl flex items-start justify-between gap-4 text-sm">
+              <span className="text-on-surface-variant font-semibold whitespace-nowrap pt-0.5">Joined</span>
+              <span className="font-bold text-primary text-right">
+                {new Date(profile.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+              </span>
+            </div>
+          </div>
+        </div>
+        </BorderGlow>
+
+        {/* Stats & Insights */}
+        <div className="md:col-span-2 flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-4">
+            <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="shadow-sm">
+              <div className="p-5 flex flex-col gap-2">
+                <div className="w-10 h-10 rounded-full bg-primary-fixed/30 text-primary-container flex items-center justify-center">
+                  <Leaf size={20} className="fill-current" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-on-surface">{totalPoints > 0 ? '+' : ''}<CountUp to={totalPoints} /></div>
+                  <div className="text-xs uppercase tracking-widest font-bold text-on-surface-variant mt-1">Total Impact Points</div>
+                </div>
+              </div>
+            </BorderGlow>
+
+            <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="shadow-sm">
+              <div className="p-5 flex flex-col gap-2">
+                <div className="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+                  <Flame size={20} className="fill-current" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-on-surface"><CountUp to={streak} /></div>
+                  <div className="text-xs uppercase tracking-widest font-bold text-on-surface-variant mt-1">Day Streak</div>
+                </div>
+              </div>
+            </BorderGlow>
+          </div>
+
+          <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="flex-1 shadow-sm h-full">
+            <div className="p-6 h-full">
+              <div className="flex items-center gap-2 mb-6">
+                <ChartNoAxesCombined className="text-primary" size={24} />
+                <h3 className="text-xl font-bold text-on-surface">Your Impact Journey</h3>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 bg-soft-sage/20 rounded-xl border border-soft-sage/30">
+                <div className="bg-surface-container-lowest p-3 rounded-full text-primary shadow-sm">
+                  <Activity size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-on-surface">Consistent Logger</h4>
+                  <p className="text-sm font-medium text-on-surface-variant">You've logged <CountUp to={totalLogs} /> actions total.</p>
+                </div>
+              </div>
+            </div>
+          </BorderGlow>
+          
+          <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="shadow-sm">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-on-surface mb-2">App Preferences</h3>
+              <p className="text-sm text-on-surface-variant mb-6">Customize your experience</p>
+              
+              <div className="flex items-center justify-between p-4 bg-surface-container rounded-xl border border-outline/10">
+                <div className="flex items-center gap-3">
+                  <div className="text-primary bg-primary-container p-2 rounded-lg">
+                    {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+                  </div>
+                  <div>
+                    <div className="font-bold text-on-surface">Dark Mode</div>
+                    <div className="text-xs text-on-surface-variant">Switch between light and dark themes</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${theme === 'dark' ? 'bg-primary' : 'bg-surface-variant'}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${theme === 'dark' ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            </div>
+          </BorderGlow>
+          
+          <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="shadow-sm">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-on-surface mb-2">Data Management</h3>
+              <p className="text-sm text-on-surface-variant mb-6">Export your account data to a JSON file, or import existing data.</p>
+              
+              <div className="flex flex-wrap gap-4">
+                <button
+                  onClick={() => setShowClearLogsConfirm(true)}
+                  className="flex items-center gap-2 bg-error-container text-on-error-container hover:bg-error-container/80 px-5 py-3 rounded-xl font-bold transition-colors shadow-sm text-sm"
+                >
+                  <LogOut size={18} /> Clear Activity Data
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="flex items-center gap-2 bg-primary-container text-on-primary-container hover:bg-primary-container/80 px-5 py-3 rounded-xl font-bold transition-colors shadow-sm text-sm"
+                >
+                  <Download size={18} /> Export Data
+                </button>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".json"
+                    ref={fileInputRef}
+                    onChange={handleImport}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <button className="flex items-center gap-2 bg-surface-container hover:bg-surface-variant px-5 py-3 rounded-xl font-bold text-on-surface transition-colors shadow-sm border border-outline/20 text-sm">
+                    <Upload size={18} /> Import Data
+                  </button>
+                </div>
+              </div>
+            </div>
+          </BorderGlow>
+        </div>
+      </div>
+    </div>
+  );
+}

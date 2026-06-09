@@ -1,0 +1,11 @@
+{
+  "name": "Sustainly",
+  "description": "An AI tracking assistant helping users track their simple daily tasks for carbon footprint awareness.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
