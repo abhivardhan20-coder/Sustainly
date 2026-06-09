@@ -6,46 +6,56 @@
 * **Solution summary:** Sustainly is an AI-powered sustainability companion. It uses an intelligent chat interface powered by Gemini to track daily actions, calculate impact points, and provide personalized, context-aware suggestions for sustainable living.
 
 ## Architecture
-* **System design:** React-based Single Page Application (SPA) with a Vite dev server. State management is handled by Zustand with local persistence. User authentication and data backup are managed via Firebase (Auth and Firestore). The Assistant is powered by the Gemini API.
+* **System design:** React-based Single Page Application (SPA) with a Vite dev server + Express backend. State management is handled by Zustand with local persistence. User authentication and data backup are managed via Firebase (Auth and Firestore). The Assistant is powered by the Gemini API with structured output.
 * **Component diagram:** 
   - `UI Layer`: React components (Dashboard, Profile, ChatLogger, Garden).
   - `State Layer`: Zustand (`useSustainlyStore`).
-  - `Backend Integration`: Firebase services (Auth, Firestore).
-  - `AI Integration`: Gemini API via Google GenAI SDK.
-* **Data flow:** User inputs actions in chat -> Gemini processes context & extracts activities with point values -> Zustand updates local state -> Firebase syncs state (Firestore).
+  - `Backend Integration`: Firebase services (Auth, Firestore) + Express server for AI calls.
+  - `AI Integration`: Gemini API via Google GenAI SDK with response schemas.
+* **Data flow:** User inputs actions in chat -> Express backend calls Gemini (with profile + history) -> Structured JSON returned -> Zustand updates local state -> Firebase syncs data.
 
 ## Features
-* **Smart Assistant Behavior:** Natural language logging of daily activities.
-* **Dynamic Decision Making:** AI recommends actions based on the user's specific context, diet, region, and previous activity.
-* **Context-Aware Responses:** The Gemini AI understands historical inputs to provide relevant continuous feedback.
+* **Smart Assistant Behavior:** Natural language logging of daily activities with image support.
+* **Dynamic Decision Making:** AI calculates CO₂e, assigns gamification points, and suggests personalized offsetting actions.
+* **Context-Aware Responses:** The Gemini AI uses user profile and history for relevant continuous feedback.
 * **Virtual Garden:** A visual representation of user impact, growing trees and flowers based on points earned.
-* **Gamification:** Streaks and points to encourage consistent tracking.
+* **Gamification:** Streaks, points, and daily suggested actions.
 * **Dark Mode:** Seamless light/dark theme persistence across sessions.
 
 ## Setup Instructions
 * **Installation:** Run `npm install`
-* **Environment variables:** Create a `.env` file based on `.env.example`. Requires `VITE_FIREBASE_API_KEY`, Firebase config, and `VITE_GEMINI_API_KEY` (if moved to frontend for pure SPA testing, or as `GEMINI_API_KEY` for backend mode).
-* **Running locally:** Run `npm run dev` to start the Vite server.
-* **Deployment:** Deploy to Vercel, Netlify, or Firebase Hosting. Run `npm run build` to generate static files.
+* **Environment variables:** Create a `.env` file based on `.env.example`. Requires Firebase config + `GEMINI_API_KEY` (used on the backend).
+* **Firebase Security Rules:** After deploying, go to Firebase Console → Firestore → Rules and paste the content from `firestore.rules` (or deploy using Firebase CLI).
+* **Running locally:** Run `npm run dev` to start both frontend and backend.
+* **Deployment:** 
+  - Frontend: Vercel, Netlify, or Firebase Hosting
+  - Backend: Can be deployed to Render, Railway, or as Firebase Functions
+  - Run `npm run build` to generate static files
 
 ## Usage Examples
 * **Example inputs:** "I rode my bike 5 miles today and ate a vegan lunch."
 * **Example outputs:** The AI Assistant logs: 1x Bike Ride (25 pts), 1x Vegan Meal (30 pts). It then suggests: "Great job! Would you like to try composting your kitchen scraps this week?"
-* **User workflows:** User signs up -> completes onboarding (diet, commute) -> talks to the chat logger daily to earn points -> views progress and grows their virtual garden in the dashboard.
+* **User workflows:** User signs up -> completes onboarding (diet, commute) -> talks to the chat logger daily to earn points -> views progress and grows their virtual garden.
 
 ## Assumptions
 * **Business assumptions:** Users want to track their carbon footprint but prefer conversational interfaces over manual forms.
-* **Technical assumptions:** The Gemini API is available and can reliably extract structured JSON entities from unstructured text.
+* **Technical assumptions:** The Gemini API is available and can reliably extract structured JSON entities from unstructured text + images.
 
 ## Security Considerations
-* **Data handling:** User profiles and logs are stored securely in Firestore, gated by Firebase Security Rules ensuring users can only read/write their own data.
-* **Privacy protections:** No public sharing of user data; email authentication limits unauthorized access.
+* **Data handling:** User profiles and logs are stored in Firestore, protected by `firestore.rules` so users can only read/write their own data.
+* **API Protection:** Strict rate limiting on AI endpoints (5 requests/min per IP) + input validation.
+* **Privacy protections:** No public sharing of user data; email authentication + Firebase rules limit unauthorized access.
+* **No secrets in frontend:** `GEMINI_API_KEY` lives only on the backend.
 
 ## Testing
-* **How to run tests:** Run `npm run test` to execute the Vitest suite.
-* **Coverage information:** Current coverage includes store state management (theme, addLog, streaks). Full component and API test coverage is planned.
+* **How to run tests:** `npm run test`
+* **Current tests:** 
+  - Store logic (`src/store.test.ts`)
+  - AI API endpoints (`tests/api.test.ts`)
+* **Recommended:** Run tests before every deployment. Add more E2E tests for full coverage.
 
 ## Future Improvements
-* Comprehensive unit and E2E testing.
-* Leaderboards for friendly competition.
-* Integration with physical IoT devices for automated home energy tracking.
+* Increase test coverage to >80%
+* Add CI/CD pipeline (GitHub Actions)
+* Leaderboards and social features
+* Integration with real carbon tracking APIs or IoT devices
