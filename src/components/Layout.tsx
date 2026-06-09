@@ -33,7 +33,7 @@ export default function Layout() {
       </div>
 
       {/* SideNavBar for Desktop */}
-      <nav className="h-screen w-64 hidden md:flex flex-col fixed left-0 top-0 bg-surface-container-low shadow-sm p-4 gap-2 z-40 border-r border-surface-variant/30">
+      <nav aria-label="Main navigation" className="h-screen w-64 hidden md:flex flex-col fixed left-0 top-0 bg-surface-container-low shadow-sm p-4 gap-2 z-40 border-r border-surface-variant/30">
         <div className="mb-8 px-4 py-4 flex items-center gap-3">
           <NavLink to="/profile" className="w-10 h-10 rounded-full border-2 border-primary-container bg-surface-variant flex items-center justify-center overflow-hidden font-bold hover:scale-105 transition-transform text-on-surface">
             {profile?.name ? profile.name.charAt(0).toUpperCase() : 'U'}

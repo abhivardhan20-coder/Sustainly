@@ -13,17 +13,17 @@ vi.mock('../server/services/geminiService', () => ({
   })
 }));
 
-vi.mock('firebase-admin', () => {
-  return {
-    default: {
-      apps: [],
-      initializeApp: vi.fn(),
-      auth: () => ({
-        verifyIdToken: vi.fn().mockResolvedValue({ uid: 'user123' })
-      })
-    }
-  };
-});
+vi.mock('firebase-admin/app', () => ({
+  getApps: vi.fn().mockReturnValue([]),
+  initializeApp: vi.fn(),
+  cert: vi.fn(),
+}));
+
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: vi.fn().mockReturnValue({
+    verifyIdToken: vi.fn().mockResolvedValue({ uid: 'user123' })
+  })
+}));
 
 describe('AI API Endpoints (Integration Style)', () => {
   beforeAll(async () => {

@@ -107,3 +107,11 @@ body {
   --color-text-main: #f9fafb;
   --color-text-muted: #9ca3af;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sway, .animate-swaySlow, .animate-grow, 
+  [class*="animate-"] {
+    animation: none !important;
+    transform: none !important;
+  }
+}

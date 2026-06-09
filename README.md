@@ -52,10 +52,15 @@
 * **Current tests:** 
   - Store logic (`src/store.test.ts`)
   - AI API endpoints (`tests/api.test.ts`)
-* **Recommended:** Run tests before every deployment. Add more E2E tests for full coverage.
+  - Gemini Service (`tests/geminiService.test.ts`)
+  - Rate limiting & auth logic (`tests/rateLimit.test.ts`, `tests/authentication.test.ts`)
+* **Note:** Tests are gated at 80% coverage in `vitest.config.ts`. Run `npm run test -- --coverage` to see the report.
+
+## Troubleshooting
+* **Firebase errors (Permission Denied):** Ensure your `firestore.rules` are deployed correctly, or you are signed in.
+* **Firebase Admin (No Project ID):** If `FIREBASE_SERVICE_ACCOUNT` is missing, the backend relies on Application Default Credentials (ADC). Run `gcloud auth application-default login` if running locally without a service account JSON.
+* **Gemini API Error (401 / 429 / 500):** Check that your `.env` contains a valid `GEMINI_API_KEY`. If 429, you are hitting the rate limit (5 requests / min per IP).
 
 ## Future Improvements
-* Increase test coverage to >80%
-* Add CI/CD pipeline (GitHub Actions)
 * Leaderboards and social features
 * Integration with real carbon tracking APIs or IoT devices

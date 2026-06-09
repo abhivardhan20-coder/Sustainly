@@ -1,15 +1,29 @@
 import express from 'express';
 import { requireAuth } from '../middleware/auth';
 import { logRequestSchema, insightsRequestSchema } from '../validators/apiValidators';
-import { generateInsights, generateActivityLog } from '../services/geminiService';
 import { insightsCache, generateCacheKey } from '../cache/lruCache';
+import { generateInsights, generateActivityLog } from '../services/geminiService';
+import { getFirestore } from 'firebase-admin/firestore';
+import { logger } from '../utils/logger';
+import rateLimit from "express-rate-limit";
 
 const router = express.Router();
+
+const aiLimiter = rateLimit({
+  windowMs: 60000,
+  max: 5,
+  keyGenerator: (req) => req.user?.uid || req.ip || 'unknown',
+  handler: (req, res, next, options) => {
+    const safeIp = req.ip ? req.ip.replace(/\.\d+$/, '.xxx') : 'unknown';
+    logger.warn(`[Abuse Protection] AI rate limit exceeded! UID: ${req.user?.uid || 'none'} IP: ${safeIp} path: ${req.originalUrl}`);
+    res.status(429).json({ error: "Too many AI generation requests. Please try again later." });
+  }
+});
 
 // Apply auth middleware to all AI routes
 router.use(requireAuth);
 
-router.post('/insights', async (req, res) => {
+router.post('/insights', aiLimiter, async (req, res) => {
   try {
     const parseResult = insightsRequestSchema.safeParse(req.body);
     if (!parseResult.success) {
@@ -18,20 +32,55 @@ router.post('/insights', async (req, res) => {
 
     const { profile, history } = parseResult.data;
     
-    // Fallback: If no profile/history, still need a string to hash
-    const cacheKey = generateCacheKey(profile || {}, history || []);
-    const cached = insightsCache.get(cacheKey);
-    
-    if (cached) {
-      return res.json(cached);
+    const cacheKey = generateCacheKey(profile, history);
+    const cachedInsights = insightsCache.get(cacheKey);
+
+    if (cachedInsights) {
+      return res.json(cachedInsights);
     }
 
+    // Fetch daily insights from Firestore
+    const uid = req.user?.uid;
+    if (uid) {
+      try {
+        const db = getFirestore();
+        const userRef = db.collection('users').doc(uid);
+        const doc = await userRef.get();
+        if (doc.exists) {
+          const data = doc.data()!;
+          const today = new Date().toISOString().split('T')[0];
+          
+          if (data.dailyInsights && data.dailyInsights.date === today) {
+            insightsCache.set(cacheKey, data.dailyInsights.tips);
+            return res.json(data.dailyInsights.tips);
+          }
+          
+          // Generate new insights
+          const result = await generateInsights(profile || null, history || []);
+          
+          // Save back to Firestore
+          await userRef.set({
+            dailyInsights: {
+              date: today,
+              tips: result
+            }
+          }, { merge: true });
+          
+          insightsCache.set(cacheKey, result);
+          return res.json(result);
+        }
+      } catch (dbError) {
+        logger.error(`[Firestore Error] Failed to fetch/save insights: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+      }
+    }
+
+    // Fallback if no uid or db error
     const result = await generateInsights(profile || null, history || []);
     insightsCache.set(cacheKey, result);
     res.json(result);
 
   } catch (error: any) {
-    console.log("Gemini API Error (Insights):", error?.message || error);
+    logger.error(`[API Error] Gemini insights generation failed: ${error?.message || String(error)}`);
     res.json([
       "🚴 Biking 3 days/week saves 1k lbs CO2",
       "💡 LED bulbs use 75% less energy",
@@ -43,7 +92,7 @@ router.post('/insights', async (req, res) => {
   }
 });
 
-router.post('/log', async (req, res) => {
+router.post('/log', aiLimiter, async (req, res) => {
   try {
     const parseResult = logRequestSchema.safeParse(req.body);
     if (!parseResult.success) {
@@ -53,13 +102,77 @@ router.post('/log', async (req, res) => {
     const { userMessage, profile, history, imageBase64 } = parseResult.data;
 
     const result = await generateActivityLog({ userMessage, profile, history, imageBase64 });
+
+    if (result.activities) {
+      result.activities = result.activities.map(act => ({
+        ...act,
+        points: Math.min(Math.max(act.points || 0, -10), 50)
+      }));
+    }
+
+    // Secure Server-Side Database Update
+    const uid = req.user?.uid;
+    if (uid && result.activities && result.activities.length > 0) {
+      try {
+        const db = getFirestore();
+        const userRef = db.collection('users').doc(uid);
+        
+        const today = new Date().toISOString().split('T')[0];
+        const logRef = db.collection('users').doc(uid).collection('logs').doc(today);
+
+        await db.runTransaction(async (t) => {
+          const userSnap = await t.get(userRef);
+          const logSnap = await t.get(logRef);
+          
+          if (userSnap.exists) {
+            const userData = userSnap.data()!;
+            let streak = userData.streak || 0;
+            let lastLoggedDate = userData.lastLoggedDate || null;
+            const totalPoints = result.activities.reduce((sum: number, act: any) => sum + (act.points || 0), 0);
+            
+            let currentActivities = [];
+            let currentDailyPoints = 0;
+
+            if (logSnap.exists) {
+              currentActivities = logSnap.data()!.activities || [];
+              currentDailyPoints = logSnap.data()!.totalPoints || 0;
+            } else {
+              // Logic for new day streak calculation
+              if (lastLoggedDate) {
+                 const lastDate = new Date(lastLoggedDate);
+                 const todayDate = new Date(today);
+                 const diffDays = Math.ceil(Math.abs(todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+                 if (diffDays === 1) streak += 1;
+                 else if (diffDays > 1) streak = 1;
+              } else {
+                streak = 1;
+              }
+              lastLoggedDate = today;
+            }
+            
+            // Write to Subcollection
+            t.set(logRef, {
+              activities: [...currentActivities, ...result.activities],
+              totalPoints: currentDailyPoints + totalPoints
+            }, { merge: true });
+
+            // Update Root User Doc
+            t.set(userRef, { streak, lastLoggedDate }, { merge: true });
+          }
+        });
+      } catch (dbError) {
+        logger.error(`[Firestore Error] Failed to update user log: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+        // Continue and return the AI result even if DB fails for MVP
+      }
+    }
+
     res.json(result);
 
   } catch (error: any) {
     if (error.message === "Invalid image format" || error.message === "Invalid image data") {
       return res.status(400).json({ error: error.message });
     }
-    console.log("Gemini API Error (Log):", error?.message || error);
+    logger.error(`[API Error] Gemini log generation failed: ${error?.message || String(error)}`);
     res.status(500).json({ error: "Failed to parse activity due to high demand. Please try again." });
   }
 });

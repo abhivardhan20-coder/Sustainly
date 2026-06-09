@@ -7,17 +7,17 @@ vi.mock('../server/services/geminiService', () => ({
   generateActivityLog: vi.fn().mockResolvedValue({ activities: [], message: 'Mock message', suggestedAction: {} })
 }));
 
-vi.mock('firebase-admin', () => {
-  return {
-    default: {
-      apps: [],
-      initializeApp: vi.fn(),
-      auth: () => ({
-        verifyIdToken: vi.fn().mockResolvedValue({ uid: 'user123' })
-      })
-    }
-  };
-});
+vi.mock('firebase-admin/app', () => ({
+  getApps: vi.fn().mockReturnValue([]),
+  initializeApp: vi.fn(),
+  cert: vi.fn(),
+}));
+
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: vi.fn().mockReturnValue({
+    verifyIdToken: vi.fn().mockResolvedValue({ uid: 'user123' })
+  })
+}));
 
 describe('Rate Limiter', () => {
   it('should allow requests under the limit and block once AI limit (5) is exceeded', async () => {

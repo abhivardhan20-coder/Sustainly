@@ -24,13 +24,12 @@ jobs:
 
     - name: Security Audit
       run: npm audit --audit-level=moderate
-      continue-on-error: true   # Don't fail the build on moderate issues for now
 
     - name: Run TypeScript check
       run: npm run lint
 
-    - name: Run tests
-      run: npm test
+    - name: Run tests with coverage
+      run: npm test -- --coverage
       env:
         GEMINI_API_KEY: test-key-for-ci
         NODE_ENV: test

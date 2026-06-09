@@ -10,9 +10,16 @@ const options = {
 export const insightsCache = new LRUCache<string, string[]>(options);
 
 export const generateCacheKey = (profile: any, history: any[]): string => {
-  // Safe stringification for hashing
-  const profileStr = profile ? JSON.stringify(profile) : '';
-  const historyStr = history ? JSON.stringify(history) : '';
-  
+  // Sort object keys for deterministic caching
+  const deterministicStringify = (obj: any): string => {
+    if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
+    if (Array.isArray(obj)) return `[${obj.map(deterministicStringify).join(',')}]`;
+    const keys = Object.keys(obj).sort();
+    return `{${keys.map(k => `"${k}":${deterministicStringify(obj[k])}`).join(',')}}`;
+  };
+
+  const profileStr = profile ? deterministicStringify(profile) : '';
+  const historyStr = history ? deterministicStringify(history) : '';
+
   return crypto.createHash('sha256').update(profileStr + historyStr).digest('hex');
 };

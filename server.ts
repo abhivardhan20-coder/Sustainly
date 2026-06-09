@@ -3,16 +3,31 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import { join } from 'path';
+import apiRoutes from './server/routes/api';
+import { logger } from './server/utils/logger';
 import "dotenv/config";
-import apiRoutes from "./server/routes/api";
 
 export const app = express();
 
 const PORT = 4321;
 
+// Trust the first proxy (e.g., Render, Railway, Nginx, Vercel)
+// This is critical for express-rate-limit to see the real user IPs
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet({
-  contentSecurityPolicy: false, // Vite dev server requires custom CSP, so we disable default for MVP
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://lh3.googleusercontent.com"], // Google avatars
+      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com"]
+    }
+  } : false, // Disable only in dev for Vite HMR
 }));
 
 // Enforce HTTPS in production
@@ -31,11 +46,11 @@ app.use((req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - start;
     if (res.statusCode >= 400) {
-      console.error(`[API Error] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - IP: ${safeIp}`);
+      logger.error(`[API Error] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - IP: ${safeIp}`);
     } else if (duration > 2000) {
-      console.warn(`[Unusual Traffic] Slow request: ${req.method} ${req.originalUrl} - ${duration}ms`);
+      logger.warn(`[Unusual Traffic] Slow request: ${req.method} ${req.originalUrl} - ${duration}ms`);
     } else {
-      console.log(`[Traffic] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - ${duration}ms`);
+      logger.info(`[Traffic] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - ${duration}ms`);
     }
   });
   next();
@@ -46,25 +61,15 @@ const limiter = rateLimit({
   max: 30,
   handler: (req, res, next, options) => {
     const safeIp = req.ip ? req.ip.replace(/\.\d+$/, '.xxx') : 'unknown';
-    console.warn(`[Security Alert] Global rate limit exceeded! IP: ${safeIp} path: ${req.originalUrl}`);
+    logger.warn(`[Security Alert] Global rate limit exceeded! IP: ${safeIp} path: ${req.originalUrl}`);
     res.status(options.statusCode).send(options.message);
   }
 });
 
-const aiLimiter = rateLimit({
-  windowMs: 60000,
-  max: 5,
-  handler: (req, res, next, options) => {
-    const safeIp = req.ip ? req.ip.replace(/\.\d+$/, '.xxx') : 'unknown';
-    console.warn(`[Abuse Protection] AI rate limit exceeded! IP: ${safeIp} path: ${req.originalUrl}`);
-    res.status(429).json({ error: "Too many AI generation requests. Please try again later." });
-  }
-});
-
 app.use('/api/', limiter);
-app.use('/api/insights', aiLimiter);
-app.use('/api/log', aiLimiter);
-app.use(express.json({ limit: '512kb' }));
+app.use(express.json({ limit: '10mb' }));
+
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Mount modular API routes
 app.use('/api', apiRoutes);
@@ -94,8 +99,8 @@ export async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  return app.listen(PORT, "0.0.0.0", () => {
+    logger.info(`Server running on http://localhost:${PORT}`);
   });
 }
 

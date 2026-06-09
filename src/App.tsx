@@ -10,9 +10,10 @@ import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
 import Layout from './components/Layout';
 import Onboarding from './pages/Onboarding';
-import Dashboard from './pages/Dashboard';
+import { lazy, Suspense } from 'react';
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Garden = lazy(() => import('./pages/Garden'));
 import ChatLogger from './pages/ChatLogger';
-import Garden from './pages/Garden';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import ClickSpark from './components/ClickSpark';
@@ -47,25 +48,7 @@ export default function App() {
       if (user) {
         // User logged in, check if they have a profile in Firestore
         try {
-          // Add a timeout to the getDoc call to prevent hanging if Firestore is unreachable
-          const userDocRef = doc(db, 'users', user.uid);
-          const docPromise = getDoc(userDocRef);
-          const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000));
-          
-          const userDoc = await Promise.race([docPromise, timeoutPromise]);
-          
-          if (userDoc && 'exists' in userDoc && userDoc.exists()) {
-            const data = userDoc.data();
-            useSustainlyStore.setState({
-              profile: data.profile,
-              dailyLogs: data.dailyLogs || {},
-              garden: data.garden || { trees: 0, flowers: 0, lastGrown: new Date().toISOString() },
-              streak: data.streak || 0,
-              lastLoggedDate: data.lastLoggedDate || null,
-              todaysActions: data.todaysActions || [],
-              theme: data.theme || 'light'
-            });
-          }
+          await useSustainlyStore.getState().loadFromFirestore();
         } catch (err) {
           console.error("Error loading user data from Firestore:", err);
         }
@@ -89,33 +72,7 @@ export default function App() {
     };
   }, []);
 
-  // Sync to Firestore whenever state changes
-  useEffect(() => {
-    let writeTimer: ReturnType<typeof setTimeout>;
-    const unsub = useSustainlyStore.subscribe((state) => {
-      clearTimeout(writeTimer);
-      writeTimer = setTimeout(() => {
-        const user = auth.currentUser;
-        if (user && state.profile) {
-          setDoc(doc(db, 'users', user.uid), {
-            profile: state.profile,
-            dailyLogs: state.dailyLogs,
-            garden: state.garden,
-            streak: state.streak,
-            lastLoggedDate: state.lastLoggedDate,
-            todaysActions: state.todaysActions,
-            theme: state.theme
-          }, { merge: true }).catch(err => {
-             console.error("Error saving data to Firestore:", err);
-          });
-        }
-      }, 2000);
-    });
-    return () => {
-      unsub();
-      clearTimeout(writeTimer);
-    };
-  }, []);
+  // Client-side Firestore sync has been securely moved to backend API routes
 
   if (authChecking) {
     return <div className="min-h-screen bg-surface flex items-center justify-center text-primary">Loading...</div>;
@@ -128,9 +85,9 @@ export default function App() {
         <Route path="/onboarding" element={<Onboarding />} />
         
         <Route element={profile ? <ClickSpark sparkColor='#166534' sparkSize={10} sparkRadius={15} sparkCount={8} duration={400}><Layout /></ClickSpark> : <Navigate to="/" />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Suspense fallback={<div className="flex h-full items-center justify-center p-8 text-primary">Loading...</div>}><Dashboard /></Suspense>} />
           <Route path="/log" element={<ChatLogger />} />
-          <Route path="/garden" element={<Garden />} />
+          <Route path="/garden" element={<Suspense fallback={<div className="flex h-full items-center justify-center p-8 text-primary">Loading...</div>}><Garden /></Suspense>} />
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>

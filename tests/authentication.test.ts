@@ -8,21 +8,20 @@ vi.mock('../server/services/geminiService', () => ({
   generateActivityLog: vi.fn().mockResolvedValue({ activities: [], message: 'Mock message', suggestedAction: {} })
 }));
 
-// Mock firebase-admin
-vi.mock('firebase-admin', () => {
-  return {
-    default: {
-      apps: [],
-      initializeApp: vi.fn(),
-      auth: () => ({
-        verifyIdToken: vi.fn(async (token) => {
-          if (token === 'valid-token') return { uid: 'user123' };
-          throw new Error('Invalid token');
-        })
-      })
-    }
-  };
-});
+vi.mock('firebase-admin/app', () => ({
+  getApps: vi.fn().mockReturnValue([]),
+  initializeApp: vi.fn(),
+  cert: vi.fn(),
+}));
+
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: vi.fn().mockReturnValue({
+    verifyIdToken: vi.fn(async (token: string) => {
+      if (token === 'valid-token') return { uid: 'user123' };
+      throw new Error('Invalid token');
+    })
+  })
+}));
 
 describe('Authentication Middleware', () => {
   it('should return 401 if no Authorization header is provided', async () => {

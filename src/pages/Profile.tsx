@@ -31,6 +31,17 @@ export default function Profile() {
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showLogoutConfirm) setShowLogoutConfirm(false);
+        if (showClearLogsConfirm) setShowClearLogsConfirm(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showLogoutConfirm, showClearLogsConfirm]);
+
   const handleExport = () => {
     const state = useSustainlyStore.getState();
     const data = {

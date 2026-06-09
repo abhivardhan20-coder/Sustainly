@@ -1,8 +1,12 @@
 node_modules/
-build/
 dist/
 coverage/
-.DS_Store
-*.log
-.env*
+playwright-report/
+test-results/
+.env
+.env.*
 !.env.example
+*.log
+README_SYNC_v*.md
+.DS_Store
+sync_readme.py

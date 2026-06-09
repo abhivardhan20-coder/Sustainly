@@ -6,6 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import BorderGlow from '../components/BorderGlow';
 import CountUp from '../components/CountUp';
 import ScrollVelocity from '../components/ScrollVelocity';
+import BadgeGrid from '../components/dashboard/BadgeGrid';
 import { auth } from '../lib/firebase';
 
 const BADGES = [
@@ -66,6 +67,16 @@ export default function Dashboard() {
     return () => { isMounted = false; };
   }, [profile, dailyLogs]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedCategory) {
+        setSelectedCategory(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedCategory]);
+
   // For MVP, just calculate points from all logs for "avoided so far" concept
   // Or today's points
   const today = new Date().toISOString().split('T')[0];
@@ -107,7 +118,7 @@ export default function Dashboard() {
     .slice(0, 2);
 
   return (
-    <div className="flex flex-col gap-6 lg:gap-8 animate-in fade-in duration-500 p-4 lg:p-8">
+    <div className="flex flex-col gap-6 lg:gap-8 motion-safe:animate-in motion-safe:fade-in duration-500 p-4 lg:p-8">
       {/* Header */}
       <div className="flex justify-between items-end mb-4 md:hidden">
         <div>
@@ -173,7 +184,7 @@ export default function Dashboard() {
                     <Cell fill="#eeeeed" />
                   </Pie>
                 </PieChart>
-                <div className="absolute inset-0 flex items-center justify-center animate-sway">
+                <div className="absolute inset-0 flex items-center justify-center motion-safe:animate-sway">
                    <Leaf size={40} className="text-primary fill-current opacity-90" />
                 </div>
             </div>
@@ -208,8 +219,12 @@ export default function Dashboard() {
 
           {/* Categories Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
-             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="w-full shadow-sm hover:scale-[1.02] cursor-pointer transition-transform">
-               <div className="p-4 text-center" onClick={() => setSelectedCategory('transport')}>
+             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="w-full shadow-sm hover:scale-[1.02] transition-transform">
+               <button 
+                 className="p-4 text-center w-full focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-xl" 
+                 onClick={() => setSelectedCategory('transport')}
+                 aria-label="View Transport Insights"
+               >
                  <div className="w-10 h-10 mx-auto bg-surface-container rounded-full flex items-center justify-center mb-3 text-primary">
                    <Bike size={20} />
                  </div>
@@ -217,11 +232,15 @@ export default function Dashboard() {
                  <div className={`flex items-center justify-center gap-1 text-xs font-bold ${getTrendColor(transportPoints)}`}>
                    {renderTrend(transportPoints)}
                  </div>
-               </div>
+               </button>
              </BorderGlow>
              
-             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="w-full shadow-sm hover:scale-[1.02] cursor-pointer transition-transform">
-               <div className="p-4 text-center" onClick={() => setSelectedCategory('food')}>
+             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="w-full shadow-sm hover:scale-[1.02] transition-transform">
+               <button 
+                 className="p-4 text-center w-full focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-xl" 
+                 onClick={() => setSelectedCategory('food')}
+                 aria-label="View Food Insights"
+               >
                  <div className="w-10 h-10 mx-auto bg-surface-container rounded-full flex items-center justify-center mb-3 text-tertiary-container">
                    <Utensils size={20} />
                  </div>
@@ -229,11 +248,15 @@ export default function Dashboard() {
                  <div className={`flex items-center justify-center gap-1 text-xs font-bold ${getTrendColor(foodPoints)}`}>
                    {renderTrend(foodPoints)}
                  </div>
-               </div>
+               </button>
              </BorderGlow>
 
-             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="w-full shadow-sm hover:scale-[1.02] cursor-pointer transition-transform">
-               <div className="p-4 text-center" onClick={() => setSelectedCategory('home')}>
+             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="w-full shadow-sm hover:scale-[1.02] transition-transform">
+               <button 
+                 className="p-4 text-center w-full focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-xl" 
+                 onClick={() => setSelectedCategory('home')}
+                 aria-label="View Home Insights"
+               >
                  <div className="w-10 h-10 mx-auto bg-surface-container rounded-full flex items-center justify-center mb-3 text-primary-container">
                    <Home size={20} />
                  </div>
@@ -241,11 +264,15 @@ export default function Dashboard() {
                  <div className={`flex items-center justify-center gap-1 text-xs font-bold ${getTrendColor(homePoints)}`}>
                    {renderTrend(homePoints)}
                  </div>
-               </div>
+               </button>
              </BorderGlow>
 
-             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="w-full shadow-sm hover:scale-[1.02] cursor-pointer transition-transform">
-               <div className="p-4 text-center" onClick={() => setSelectedCategory('goods')}>
+             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="w-full shadow-sm hover:scale-[1.02] transition-transform">
+               <button 
+                 className="p-4 text-center w-full focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-xl" 
+                 onClick={() => setSelectedCategory('goods')}
+                 aria-label="View Goods Insights"
+               >
                  <div className="w-10 h-10 mx-auto bg-surface-container rounded-full flex items-center justify-center mb-3 text-on-surface-variant">
                    <ShoppingBag size={20} />
                  </div>
@@ -253,7 +280,7 @@ export default function Dashboard() {
                  <div className={`flex items-center justify-center gap-1 text-xs font-bold ${getTrendColor(goodsPoints)}`}>
                    {renderTrend(goodsPoints)}
                  </div>
-               </div>
+               </button>
              </BorderGlow>
           </div>
         </div>
@@ -264,7 +291,7 @@ export default function Dashboard() {
              <div className="flex flex-col h-full relative" onClick={() => navigate('/garden')}>
                <div className="h-48 bg-soft-sage relative overflow-hidden flex items-end justify-center pb-4 rounded-t-xl">
                 {/* Visual Fake Garden */}
-                <svg className="text-primary-container absolute bottom-4 animate-sway opacity-90" width="120" height="140" viewBox="0 0 120 200" fill="none">
+                <svg className="text-primary-container absolute bottom-4 motion-safe:animate-sway opacity-90" width="120" height="140" viewBox="0 0 120 200" fill="none" aria-hidden="true">
                   <path d="M60 200C60 200 50 120 60 60" stroke="#824b0b" strokeWidth="8" strokeLinecap="round"/>
                   <path d="M58 120C58 120 30 100 20 80" stroke="#824b0b" strokeWidth="6" strokeLinecap="round"/>
                   <circle cx="60" cy="50" r="45" fill="currentColor"/>
@@ -300,51 +327,33 @@ export default function Dashboard() {
           <Star className="text-primary fill-current" size={24} /> 
           Milestone Badges
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-          {BADGES.map(badge => {
-            const isUnlocked = badge.condition(store);
-            const Icon = badge.icon;
-            return (
-              <div 
-                key={badge.id}
-                className={`relative flex flex-col items-center p-4 rounded-2xl border transition-all ${
-                  isUnlocked 
-                    ? 'bg-surface-container border-primary/30 shadow-sm' 
-                    : 'bg-surface-container-lowest border-surface-variant/30 opacity-60 grayscale'
-                }`}
-              >
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-                  isUnlocked ? 'bg-primary-container text-on-primary-container' : 'bg-surface-variant text-on-surface-variant'
-                }`}>
-                  <Icon size={24} className={isUnlocked ? 'fill-current opacity-20 relative' : ''} />
-                  {isUnlocked && <Icon size={24} className="absolute text-primary" />}
-                </div>
-                <h4 className={`text-sm font-bold text-center mb-1 ${isUnlocked ? 'text-on-surface' : 'text-on-surface-variant'}`}>
-                  {badge.title}
-                </h4>
-                <p className="text-[10px] text-center text-on-surface-variant/80">
-                  {badge.desc}
-                </p>
-                {isUnlocked && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center shadow-sm">
-                    <Star size={12} className="fill-current" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <BadgeGrid badges={BADGES} store={store} />
       </div>
 
       {/* Insights Modal */}
       {selectedCategory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedCategory(null)}>
-          <div className="bg-surface rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm motion-safe:animate-in motion-safe:fade-in duration-200" 
+          onClick={() => setSelectedCategory(null)}
+          tabIndex={-1}
+        >
+          <div 
+            className="bg-surface rounded-2xl w-full max-w-md shadow-xl overflow-hidden motion-safe:animate-in motion-safe:zoom-in-95 duration-200" 
+            onClick={e => e.stopPropagation()}
+            role="dialog" 
+            aria-modal="true" 
+            aria-labelledby="insights-modal-title"
+          >
             <div className="p-6 border-b border-surface-variant/50 flex justify-between items-center">
-              <h3 className="text-xl font-bold uppercase tracking-widest text-on-surface">
+              <h3 id="insights-modal-title" className="text-xl font-bold uppercase tracking-widest text-on-surface">
                 {selectedCategory} Insights
               </h3>
-              <button onClick={() => setSelectedCategory(null)} className="p-2 hover:bg-surface-variant rounded-full transition-colors">
+              <button 
+                autoFocus
+                onClick={() => setSelectedCategory(null)} 
+                className="p-2 hover:bg-surface-variant rounded-full transition-colors"
+                aria-label="Close modal"
+              >
                 <X size={20} className="text-on-surface-variant" />
               </button>
             </div>
