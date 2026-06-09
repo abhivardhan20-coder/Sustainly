@@ -7,7 +7,7 @@ import BorderGlow from '../components/BorderGlow';
 import TextType from '../components/TextType';
 
 export default function ChatLogger() {
-  const { profile, addLog, setSuggestedAction, messages, setMessages } = useSustainlyStore();
+  const { profile, addLog, setSuggestedAction, completeAction, todaysActions, messages, setMessages } = useSustainlyStore();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [loggedResult, setLoggedResult] = useState<any>(null);
@@ -15,6 +15,12 @@ export default function ChatLogger() {
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check if current suggested action is completed
+  const currentSuggestedAction = loggedResult?.suggestedAction;
+  const isActionCompleted = currentSuggestedAction 
+    ? todaysActions.some(a => a.id === currentSuggestedAction.id && a.completed)
+    : false;
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,6 +82,12 @@ export default function ChatLogger() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCompleteSuggestedAction = () => {
+    if (!currentSuggestedAction) return;
+    
+    completeAction(currentSuggestedAction.id);
   };
 
   const handleVoice = () => {
@@ -144,7 +156,7 @@ export default function ChatLogger() {
         <h1 className="text-xl font-bold text-primary -translate-y-[2px]">Understanding your day...</h1>
       </div>
 
-      {/* Chat Area - Improved a11y */}
+      {/* Chat Area */}
       <div 
         className="flex-1 overflow-y-auto p-4 flex flex-col gap-6" 
         role="log" 
@@ -221,15 +233,18 @@ export default function ChatLogger() {
                     </p>
                     <h4 className="text-base font-bold text-on-surface mb-1">{loggedResult.suggestedAction.title}</h4>
                     <p className="text-sm font-medium text-text-muted mb-4">{loggedResult.suggestedAction.description}</p>
+                    
                     <button 
-                      onClick={() => {
-                        // TODO: Implement committing to suggested action
-                        alert('Thank you! This feature is coming soon.');
-                      }}
-                      className="w-full py-3 bg-primary text-on-primary rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      aria-label={`Commit to: ${loggedResult.suggestedAction.title}`}
+                      onClick={handleCompleteSuggestedAction}
+                      disabled={isActionCompleted}
+                      className={`w-full py-3 rounded-lg text-sm font-bold uppercase tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 ${isActionCompleted 
+                        ? 'bg-green-600 text-white cursor-default' 
+                        : 'bg-primary text-on-primary hover:bg-primary/90'}`}
+                      aria-label={isActionCompleted 
+                        ? `Completed: ${loggedResult.suggestedAction.title}` 
+                        : `Commit to: ${loggedResult.suggestedAction.title}`}
                     >
-                      {loggedResult.suggestedAction.btnText}
+                      {isActionCompleted ? '✓ Completed' : loggedResult.suggestedAction.btnText}
                     </button>
                   </div>
                 )}
