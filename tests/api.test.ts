@@ -1,72 +1,57 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import express from 'express';
-import { GoogleGenAI } from '@google/genai';
+import { app, startServer } from '../server';
+import { generateInsights, generateActivityLog } from '../lib/gemini';
 
-// Mock Gemini
-vi.mock('@google/genai', () => {
-  return {
-    GoogleGenAI: vi.fn().mockImplementation(() => ({
-      models: {
-        generateContent: vi.fn().mockResolvedValue({
-          text: JSON.stringify({
-            activities: [
-              {
-                id: 'act1',
-                type: 'transport',
-                description: 'Took the metro to work',
-                points: 15,
-                icon: 'train'
-              }
-            ],
-            message: "Great job taking public transport today!",
-            suggestedAction: {
-              title: "Offset your commute",
-              description: "Try walking for short trips this week.",
-              btnText: "Commit to Walk"
-            }
-          })
-        })
-      }
-    }))
-  };
-});
+// Mock the Gemini service functions
+vi.mock('../lib/gemini', () => ({
+  generateInsights: vi.fn(),
+  generateActivityLog: vi.fn(),
+}));
 
-// We need to import the app after mocking
-// For simplicity in this test setup, we'll test the route logic conceptually
-// In a real setup you would export the app from server.ts
-
-describe('AI API Endpoints', () => {
-  let app: express.Express;
-
-  beforeEach(async () => {
-    // In production you would do:
-    // const { app: realApp } = await import('../server');
-    // app = realApp;
-    
-    // For now we create a minimal mock app to demonstrate test structure
-    app = express();
-    app.use(express.json());
-    
-    // Mock /api/log route
-    app.post('/api/log', (req, res) => {
-      res.json({
-        activities: [{ id: 'act1', type: 'transport', description: 'Took the metro', points: 15, icon: 'train' }],
-        message: "Great job!",
-        suggestedAction: { title: "Test", description: "Test action", btnText: "OK" }
-      });
-    });
-
-    // Mock /api/insights route
-    app.post('/api/insights', (req, res) => {
-      res.json([
-        "🚴 Biking saves CO2",
-        "🥦 Plant-based meals help"
-      ]);
-    });
+describe('AI API Endpoints (Integration Style)', () => {
+  beforeAll(async () => {
+    // We don't actually start the HTTP server, just use the app
+    // startServer is only for when running the real server
   });
 
-  it('should return structured activity log from /api/log', async () => {
+  it('POST /api/insights - should return insights', async () => {
+    (generateInsights as any).mockResolvedValue([
+      "🚴 Biking saves CO2",
+      "🥦 Plant-based meals help"
+    ]);
+
+    const response = await request(app)
+      .post('/api/insights')
+      .send({
+        profile: { diet: 'vegan' },
+        history: []
+      });
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
+    expect(response.body.length).toBeGreaterThan(0);
+  });
+
+  it('POST /api/log - should return structured activity log', async () => {
+    (generateActivityLog as any).mockResolvedValue({
+      activities: [
+        {
+          id: 'act1',
+          type: 'transport',
+          description: 'Took the metro to work',
+          points: 15,
+          icon: 'train'
+        }
+      ],
+      message: "Great job taking public transport today!",
+      suggestedAction: {
+        title: "Offset your commute",
+        description: "Try walking for short trips this week.",
+        btnText: "Commit to Walk"
+      }
+    });
+
     const response = await request(app)
       .post('/api/log')
       .send({
@@ -77,29 +62,15 @@ describe('AI API Endpoints', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.activities).toBeDefined();
-    expect(response.body.activities[0].points).toBeGreaterThan(0);
+    expect(response.body.activities[0].points).toBe(15);
     expect(response.body.suggestedAction).toBeDefined();
   });
 
-  it('should return personalized insights from /api/insights', async () => {
-    const response = await request(app)
-      .post('/api/insights')
-      .send({
-        profile: { diet: 'vegan', region: 'India' },
-        history: []
-      });
-
-    expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBeGreaterThan(0);
-  });
-
-  it('should validate input and reject invalid requests', async () => {
+  it('POST /api/log - should validate input', async () => {
     const response = await request(app)
       .post('/api/log')
       .send({ userMessage: '' });
 
-    // In real implementation this would return 400
-    expect(response.status).toBe(200); // placeholder until real route is exported
+    expect(response.status).toBe(400);
   });
 });
