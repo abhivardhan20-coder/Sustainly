@@ -10,7 +10,7 @@ export default function ChatLogger() {
   const { profile, addLog, setSuggestedAction, messages, setMessages } = useSustainlyStore();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loggedResult, setLoggedResult] = useState<any>(null); // from Gemini
+  const [loggedResult, setLoggedResult] = useState<any>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -54,7 +54,6 @@ export default function ChatLogger() {
       if (data.activities && data.activities.length > 0) {
         setLoggedResult(data);
         
-        // Save to store
         const totalPoints = data.activities.reduce((sum: number, act: any) => sum + (act.points || 0), 0);
         
         addLog({
@@ -123,7 +122,6 @@ export default function ChatLogger() {
       };
       reader.readAsDataURL(file);
     }
-    // reset input
     if (e.target) e.target.value = '';
   };
 
@@ -146,10 +144,20 @@ export default function ChatLogger() {
         <h1 className="text-xl font-bold text-primary -translate-y-[2px]">Understanding your day...</h1>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6" role="log" aria-live="polite" aria-label="Conversation">
+      {/* Chat Area - Improved a11y */}
+      <div 
+        className="flex-1 overflow-y-auto p-4 flex flex-col gap-6" 
+        role="log" 
+        aria-live="polite" 
+        aria-label="Conversation with Sustainly AI"
+        aria-busy={loading}
+      >
         {messages.map((m) => (
-          <div key={m.id} className={`flex flex-col gap-2 max-w-[85%] md:max-w-[70%] ${m.role === 'user' ? 'self-end' : 'self-start'}`}>
+          <div 
+            key={m.id} 
+            className={`flex flex-col gap-2 max-w-[85%] md:max-w-[70%] ${m.role === 'user' ? 'self-end' : 'self-start'}`}
+            role={m.role === 'ai' ? 'status' : undefined}
+          >
              <div className={`p-4 rounded-2xl text-base shadow-sm ${m.role === 'user' ? 'bg-soft-sage/20 border border-soft-sage/10 rounded-tr-sm text-on-surface' : 'bg-surface-container-lowest border-l-4 border-primary rounded-tl-sm text-on-surface border border-surface-variant/50'}`}>
                 {m.content}
              </div>
@@ -157,17 +165,26 @@ export default function ChatLogger() {
         ))}
         
         {loading && (
-          <div className="self-start max-w-[85%] md:max-w-[70%] flex flex-col gap-2">
+          <div 
+            className="self-start max-w-[85%] md:max-w-[70%] flex flex-col gap-2" 
+            role="status" 
+            aria-label="Sustainly is thinking..."
+          >
              <div className="px-5 py-4 rounded-2xl bg-surface-container-lowest border-l-4 border-surface-variant rounded-tl-sm shadow-sm flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-soft-sage animate-bounce [animation-delay:0ms]"></div>
-               <div className="w-2 h-2 rounded-full bg-soft-sage animate-bounce [animation-delay:150ms]"></div>
-               <div className="w-2 h-2 rounded-full bg-soft-sage animate-bounce [animation-delay:300ms]"></div>
+               <div className="w-2 h-2 rounded-full bg-soft-sage animate-bounce [animation-delay:0ms]" aria-hidden="true"></div>
+               <div className="w-2 h-2 rounded-full bg-soft-sage animate-bounce [animation-delay:150ms]" aria-hidden="true"></div>
+               <div className="w-2 h-2 rounded-full bg-soft-sage animate-bounce [animation-delay:300ms]" aria-hidden="true"></div>
+               <span className="sr-only">Sustainly is processing your message</span>
              </div>
           </div>
         )}
 
         {loggedResult && !loading && (
-          <div className="mt-4 animate-in slide-in-from-bottom-4 fade-in duration-500 w-full max-w-2xl mx-auto">
+          <div 
+            className="mt-4 animate-in slide-in-from-bottom-4 fade-in duration-500 w-full max-w-2xl mx-auto" 
+            role="status" 
+            aria-label="Activity logged successfully"
+          >
             <BorderGlow backgroundColor="#ffffff" borderRadius={12} className="shadow-sm w-full">
               <div className="p-6 relative overflow-hidden">
                 <div className="flex items-center gap-4 mb-6 relative z-10">
@@ -204,7 +221,14 @@ export default function ChatLogger() {
                     </p>
                     <h4 className="text-base font-bold text-on-surface mb-1">{loggedResult.suggestedAction.title}</h4>
                     <p className="text-sm font-medium text-text-muted mb-4">{loggedResult.suggestedAction.description}</p>
-                    <button className="w-full py-3 bg-primary text-on-primary rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors">
+                    <button 
+                      onClick={() => {
+                        // TODO: Implement committing to suggested action
+                        alert('Thank you! This feature is coming soon.');
+                      }}
+                      className="w-full py-3 bg-primary text-on-primary rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      aria-label={`Commit to: ${loggedResult.suggestedAction.title}`}
+                    >
                       {loggedResult.suggestedAction.btnText}
                     </button>
                   </div>
@@ -221,8 +245,16 @@ export default function ChatLogger() {
       <div className="p-4 md:p-6 bg-surface-container-lowest/90 backdrop-blur-md border-t border-surface-variant/50 shrink-0 pb-20 md:pb-6">
         {imageBase64 && (
           <div className="max-w-3xl mx-auto mb-3 relative inline-block">
-             <img src={imageBase64} alt="Captured" className="h-24 w-auto rounded-lg object-cover border border-surface-variant shadow-sm" />
-             <button onClick={() => setImageBase64(null)} className="absolute -top-2 -right-2 bg-error text-white rounded-full p-1 shadow hover:bg-error/90">
+             <img 
+               src={imageBase64} 
+               alt="Preview of uploaded photo for activity logging" 
+               className="h-24 w-auto rounded-lg object-cover border border-surface-variant shadow-sm" 
+             />
+             <button 
+               onClick={() => setImageBase64(null)} 
+               className="absolute -top-2 -right-2 bg-error text-white rounded-full p-1 shadow hover:bg-error/90 focus:outline-none focus:ring-2 focus:ring-white"
+               aria-label="Remove uploaded image"
+             >
                 <X size={14} />
              </button>
           </div>
@@ -235,8 +267,13 @@ export default function ChatLogger() {
              ref={fileInputRef} 
              onChange={handleFileChange} 
              className="hidden" 
+             aria-hidden="true"
            />
-           <button aria-label="Take a photo" onClick={() => fileInputRef.current?.click()} className="p-3 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors shrink-0">
+           <button 
+             aria-label="Take a photo or upload image" 
+             onClick={() => fileInputRef.current?.click()} 
+             className="p-3 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary/50"
+           >
              <Camera size={20} />
            </button>
            <div className="relative w-full text-base font-medium flex items-center">
@@ -252,7 +289,7 @@ export default function ChatLogger() {
                />
              )}
              <textarea 
-               aria-label="Tell me about your day"
+               aria-label="Message input - Describe your daily activities"
                value={input}
                onChange={e => setInput(e.target.value)}
                onKeyDown={(e) => {
@@ -268,10 +305,20 @@ export default function ChatLogger() {
              />
            </div>
            <div className="flex items-center gap-2 shrink-0">
-             <button aria-label={isRecording ? "Stop recording" : "Start voice input"} onClick={handleVoice} className={`p-3 rounded-lg transition-colors ${isRecording ? 'text-error bg-error/10 animate-pulse' : 'text-on-surface-variant hover:text-primary hover:bg-surface-variant'}`}>
+             <button 
+               aria-label={isRecording ? "Stop voice recording" : "Start voice input"} 
+               aria-pressed={isRecording}
+               onClick={handleVoice} 
+               className={`p-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 ${isRecording ? 'text-error bg-error/10 animate-pulse' : 'text-on-surface-variant hover:text-primary hover:bg-surface-variant'}`}
+             >
                <Mic size={20} />
              </button>
-             <button aria-label="Send message" onClick={handleSend} disabled={(!input.trim() && !imageBase64) || loading} className="p-3 bg-primary disabled:opacity-50 text-on-primary rounded-lg hover:bg-primary/90 transition-colors shadow-sm">
+             <button 
+               aria-label="Send message to Sustainly" 
+               onClick={handleSend} 
+               disabled={(!input.trim() && !imageBase64) || loading} 
+               className="p-3 bg-primary disabled:opacity-50 text-on-primary rounded-lg hover:bg-primary/90 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+             >
                <Send size={20} />
              </button>
            </div>
