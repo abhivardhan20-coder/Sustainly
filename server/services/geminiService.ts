@@ -87,7 +87,7 @@ export async function generateActivityLog(params: {
     
   if (cacheKey) {
     const cached = insightsCache.get(cacheKey);
-    if (cached) return cached as any;
+    if (cached) return cached as LogAnalysisResult;
   }
 
   // Enhance Prompt Injection Defense
@@ -150,10 +150,11 @@ Analyze the user's message/image and return a structured JSON:
   }
 
   if (imageBase64) {
-    if (!imageBase64.startsWith("data:image/")) {
-      throw new Error("Invalid image format");
-    }
+    const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     const mimeType = imageBase64.substring(imageBase64.indexOf(":") + 1, imageBase64.indexOf(";"));
+    if (!ALLOWED_MIME.includes(mimeType)) {
+      throw new Error("Invalid image format. Allowed types: JPEG, PNG, WebP, GIF");
+    }
     const base64Data = imageBase64.split(",")[1];
     if (!base64Data) throw new Error("Invalid image data");
 
@@ -180,7 +181,7 @@ Analyze the user's message/image and return a structured JSON:
   const result = JSON.parse(text);
   
   if (cacheKey) {
-    insightsCache.set(cacheKey, result as any);
+    insightsCache.set(cacheKey, result);
   }
   
   return result;

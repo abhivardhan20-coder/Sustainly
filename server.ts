@@ -1,4 +1,6 @@
+import { fileURLToPath } from 'url';
 import express from "express";
+import cors from 'cors';
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import rateLimit from "express-rate-limit";
@@ -10,7 +12,7 @@ import "dotenv/config";
 
 export const app = express();
 
-const PORT = 4321;
+const PORT = parseInt(process.env.PORT || '4321', 10);
 
 // Trust the first proxy (e.g., Render, Railway, Nginx, Vercel)
 // This is critical for express-rate-limit to see the real user IPs
@@ -28,6 +30,14 @@ app.use(helmet({
       connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com"]
     }
   } : false, // Disable only in dev for Vite HMR
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.ALLOWED_ORIGIN || 'https://sustainly.app'
+    : ['http://localhost:4321', 'http://localhost:5173'],
+  credentials: true
 }));
 
 // Enforce HTTPS in production
@@ -105,6 +115,7 @@ export async function startServer() {
 }
 
 // Auto-start only when run directly (not when imported for testing)
-if (require.main === module) {
+const __isMain = process.argv[1] === fileURLToPath(import.meta.url);
+if (__isMain) {
   startServer();
 }

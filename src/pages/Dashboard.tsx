@@ -65,7 +65,7 @@ export default function Dashboard() {
     fetchInsights();
     
     return () => { isMounted = false; };
-  }, [profile, dailyLogs]);
+  }, [profile?.id]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

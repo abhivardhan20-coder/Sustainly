@@ -14,6 +14,38 @@
   - `AI Integration`: Gemini API via Google GenAI SDK with response schemas.
 * **Data flow:** User inputs actions in chat -> Express backend calls Gemini (with profile + history) -> Structured JSON returned -> Zustand updates local state -> Firebase syncs data.
 
+### Architecture Diagram
+```mermaid
+graph TB
+    subgraph "Frontend (React SPA)"
+        UI["UI Components<br/>Dashboard | Chat | Garden | Profile"]
+        Store["Zustand Store<br/>Local Persistence"]
+        FBClient["Firebase Client SDK<br/>Auth + Firestore"]
+    end
+    
+    subgraph "Backend (Express BFF)"
+        MW["Middleware<br/>Auth | Rate Limit | Helmet | CORS"]
+        Routes["API Routes<br/>/api/log | /api/insights"]
+        Validators["Zod Validators<br/>Input Sanitization"]
+        Cache["LRU Cache<br/>In-Memory + Firestore Daily"]
+    end
+    
+    subgraph "External Services"
+        Gemini["Gemini 2.5 Flash<br/>Structured JSON Output"]
+        Firebase["Firebase<br/>Auth + Firestore"]
+    end
+
+    UI --> Store
+    UI --> MW
+    Store --> FBClient
+    FBClient --> Firebase
+    MW --> Validators
+    Validators --> Routes
+    Routes --> Cache
+    Cache --> Gemini
+    Routes --> Firebase
+```
+
 ## Features
 * **Smart Assistant Behavior:** Natural language logging of daily activities with image support.
 * **Dynamic Decision Making:** AI calculates CO₂e, assigns gamification points, and suggests personalized offsetting actions.
@@ -62,5 +94,13 @@
 * **Gemini API Error (401 / 429 / 500):** Check that your `.env` contains a valid `GEMINI_API_KEY`. If 429, you are hitting the rate limit (5 requests / min per IP).
 
 ## Future Improvements
+* Streaming AI responses for real-time chat experience
+* CORS policy enforcement for production deployment
+* Image MIME type allowlisting (JPEG, PNG, WebP, GIF only)
+* Redis-based caching for horizontal scalability
+* Focus trap implementation on modal dialogs (WCAG 2.1 compliance)
 * Leaderboards and social features
 * Integration with real carbon tracking APIs or IoT devices
+* Push notifications for streak reminders
+* Offline mode with service worker support
+* Data export in multiple formats (CSV, PDF)

@@ -25,6 +25,28 @@ vi.mock('firebase-admin/auth', () => ({
   })
 }));
 
+vi.mock('firebase-admin/firestore', () => {
+  const mockDoc = {
+    get: vi.fn().mockResolvedValue({ exists: false, data: () => ({}) }),
+    set: vi.fn().mockResolvedValue(undefined)
+  };
+  const mockCollection = {
+    doc: vi.fn().mockReturnValue(mockDoc)
+  };
+  return {
+    getFirestore: vi.fn().mockReturnValue({
+      collection: vi.fn().mockReturnValue(mockCollection),
+      runTransaction: vi.fn().mockImplementation(async (fn: any) => {
+        const t = {
+          get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ streak: 1, lastLoggedDate: null }) }),
+          set: vi.fn()
+        };
+        return fn(t);
+      })
+    })
+  };
+});
+
 describe('AI API Endpoints (Integration Style)', () => {
   beforeAll(async () => {
     // We don't actually start the HTTP server, just use the app

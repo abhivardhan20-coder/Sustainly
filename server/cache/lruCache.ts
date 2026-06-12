@@ -1,4 +1,5 @@
 import { LRUCache } from 'lru-cache';
+import type { LogAnalysisResult } from '../services/geminiService';
 import crypto from 'crypto';
 
 // Cache configuration
@@ -7,7 +8,7 @@ const options = {
   ttl: 1000 * 60 * 30, // 30 minutes
 };
 
-export const insightsCache = new LRUCache<string, string[]>(options);
+export const insightsCache = new LRUCache<string, string[] | LogAnalysisResult>(options);
 
 export const generateCacheKey = (profile: any, history: any[]): string => {
   // Sort object keys for deterministic caching

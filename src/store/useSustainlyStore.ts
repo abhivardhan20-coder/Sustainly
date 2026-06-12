@@ -77,6 +77,26 @@ export const useSustainlyStore = create<SustainlyStore>()(
           const newActivities = existingLog ? [...existingLog.activities, ...log.activities] : log.activities;
           const totalPoints = existingLog ? existingLog.totalPoints + log.totalPoints : log.totalPoints;
 
+          let streak = state.streak;
+          let lastLoggedDate = state.lastLoggedDate;
+
+          if (!existingLog) {
+            if (lastLoggedDate) {
+              const lastDate = new Date(lastLoggedDate);
+              const logDate = new Date(log.date);
+              const diffTime = Math.abs(logDate.getTime() - lastDate.getTime());
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              if (diffDays === 1) {
+                streak += 1;
+              } else if (diffDays > 1) {
+                streak = 1;
+              }
+            } else {
+              streak = 1;
+            }
+            lastLoggedDate = log.date;
+          }
+
           return {
             dailyLogs: {
               ...state.dailyLogs,
@@ -89,7 +109,9 @@ export const useSustainlyStore = create<SustainlyStore>()(
             garden: {
               ...state.garden,
               trees: state.garden.trees + 1, // grows simple for MVP
-            }
+            },
+            streak,
+            lastLoggedDate
           };
         });
         syncToFirestore(get());

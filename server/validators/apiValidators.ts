@@ -22,7 +22,14 @@ export const logRequestSchema = z.object({
   userMessage: z.string().max(1000).optional(),
   profile: profileSchema.optional(),
   history: z.array(historySchema).max(30, "History cannot exceed 30 items").optional(),
-  imageBase64: z.string().optional()
+  imageBase64: z.string()
+    .max(2_097_152, 'Image too large (max 1.5MB base64)')
+    .refine(s => {
+      const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      const mimeMatch = s.match(/^data:(image\/[^;]+);/);
+      return mimeMatch && ALLOWED_MIME.includes(mimeMatch[1]);
+    }, 'Must be a base64 data URI with allowed image type (jpeg, png, webp, gif)')
+    .optional()
 }).refine(data => data.userMessage || data.imageBase64, {
   message: "Either userMessage or imageBase64 must be provided"
 });

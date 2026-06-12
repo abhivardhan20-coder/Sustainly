@@ -10,3 +10,5 @@ test-results/
 README_SYNC_v*.md
 .DS_Store
 sync_readme.py
+scripts/test_gemini.ts
+scripts/list_models.ts

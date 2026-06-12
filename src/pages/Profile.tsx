@@ -6,6 +6,7 @@ import BorderGlow from '../components/BorderGlow';
 import CountUp from '../components/CountUp';
 import { signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import { z } from 'zod';
 
 export default function Profile() {
   const { profile, streak, dailyLogs, resetAllData, clearActivityLogs, theme, setTheme } = useSustainlyStore();
@@ -61,6 +62,27 @@ export default function Profile() {
     URL.revokeObjectURL(url);
   };
 
+  const importSchema = z.object({
+    profile: z.object({
+      id: z.string(),
+      name: z.string(),
+      city: z.string(),
+      diet: z.enum(['everything', 'pescatarian', 'vegetarian', 'vegan']),
+      primaryCommute: z.array(z.string()),
+      homeACUsage: z.enum(['track', 'could-better', 'not-really']),
+      createdAt: z.string()
+    }),
+    dailyLogs: z.record(z.any()).optional(),
+    garden: z.object({
+      trees: z.number(),
+      flowers: z.number(),
+      lastGrown: z.string().optional()
+    }).optional(),
+    streak: z.number().optional(),
+    lastLoggedDate: z.string().nullable().optional(),
+    todaysActions: z.array(z.any()).optional()
+  });
+
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -68,20 +90,23 @@ export default function Profile() {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const data = JSON.parse(event.target?.result as string);
-        if (data.profile) {
-          useSustainlyStore.setState({
-            profile: data.profile,
-            dailyLogs: data.dailyLogs || {},
-            garden: data.garden || { trees: 0, flowers: 0, lastGrown: new Date().toISOString() },
-            streak: data.streak || 0,
-            lastLoggedDate: data.lastLoggedDate || null,
-            todaysActions: data.todaysActions || []
-          });
-          alert('Data imported successfully! The system has been configured with the new data.');
-        } else {
-          alert('Invalid data format. No profile found.');
+        const rawData = JSON.parse(event.target?.result as string);
+        const parsed = importSchema.safeParse(rawData);
+        if (!parsed.success) {
+          alert('Invalid backup file format. The file does not match the expected schema.');
+          console.error('Import validation errors:', parsed.error.format());
+          return;
         }
+        const data = parsed.data;
+        useSustainlyStore.setState({
+          profile: data.profile,
+          dailyLogs: data.dailyLogs || {},
+          garden: data.garden || { trees: 0, flowers: 0, lastGrown: new Date().toISOString() },
+          streak: data.streak || 0,
+          lastLoggedDate: data.lastLoggedDate || null,
+          todaysActions: data.todaysActions || []
+        });
+        alert('Data imported successfully! The system has been configured with the new data.');
       } catch (err) {
         alert('Error parsing JSON file. Please ensure it is a valid backup.');
         console.error(err);
