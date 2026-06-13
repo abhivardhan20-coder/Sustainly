@@ -13,6 +13,7 @@ import Onboarding from './pages/Onboarding';
 import { lazy, Suspense } from 'react';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Garden = lazy(() => import('./pages/Garden'));
+const History = lazy(() => import('./pages/History'));
 import ChatLogger from './pages/ChatLogger';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
@@ -44,7 +45,6 @@ export default function App() {
     }, 4000);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      clearTimeout(timeoutId);
       if (user) {
         // User logged in, check if they have a profile in Firestore
         try {
@@ -59,6 +59,7 @@ export default function App() {
         }
       }
       if (isMounted) setAuthChecking(false);
+      clearTimeout(timeoutId);
     }, (error) => {
       clearTimeout(timeoutId);
       console.error("Auth state change error:", error);
@@ -88,6 +89,7 @@ export default function App() {
           <Route path="/dashboard" element={<Suspense fallback={<div className="flex h-full items-center justify-center p-8 text-primary">Loading...</div>}><Dashboard /></Suspense>} />
           <Route path="/log" element={<ChatLogger />} />
           <Route path="/garden" element={<Suspense fallback={<div className="flex h-full items-center justify-center p-8 text-primary">Loading...</div>}><Garden /></Suspense>} />
+          <Route path="/history" element={<Suspense fallback={<div className="flex h-full items-center justify-center p-8 text-primary">Loading...</div>}><History /></Suspense>} />
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>

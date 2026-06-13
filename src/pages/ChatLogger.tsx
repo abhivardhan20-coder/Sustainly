@@ -72,7 +72,11 @@ export default function ChatLogger() {
         
         addLog({
           date: format(new Date(), 'yyyy-MM-dd'),
-          activities: data.activities,
+          activities: data.activities.map((act: any) => ({
+            ...act,
+            id: act.id || crypto.randomUUID(),
+            timestamp: act.timestamp || new Date().toISOString()
+          })),
           totalPoints
         });
 

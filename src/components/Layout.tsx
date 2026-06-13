@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, Trees, List, User, Plus, Flame } from 'lucide-react';
+import { Home, Trees, List, User, Plus, Flame, Calendar } from 'lucide-react';
 import { useSustainlyStore } from '../store/useSustainlyStore';
 import NotificationsPanel from './NotificationsPanel';
 
@@ -60,6 +60,12 @@ export default function Layout() {
           >
             <Trees size={20} /> Garden
           </NavLink>
+          <NavLink
+            to="/history"
+            className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all ${isActive ? 'bg-secondary-container text-on-secondary-container scale-[0.98]' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
+          >
+            <Calendar size={20} /> History
+          </NavLink>
         </div>
 
         <NavLink to="/log" className="mt-auto bg-primary text-on-primary font-semibold text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
@@ -94,6 +100,18 @@ export default function Layout() {
             <>
               <Trees size={20} className={isActive ? 'fill-current' : ''} />
               <span className="text-[10px] uppercase font-semibold mt-1">Garden</span>
+            </>
+          )}
+        </NavLink>
+        
+        <NavLink
+          to="/history"
+          className={({ isActive }) => `flex flex-col items-center justify-center transition-transform ${isActive ? 'bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-90' : 'text-on-surface-variant hover:text-primary'}`}
+        >
+          {({ isActive }) => (
+            <>
+              <Calendar size={20} className={isActive ? 'fill-current' : ''} />
+              <span className="text-[10px] uppercase font-semibold mt-1">History</span>
             </>
           )}
         </NavLink>
