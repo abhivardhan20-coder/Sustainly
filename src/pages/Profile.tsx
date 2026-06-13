@@ -72,7 +72,7 @@ export default function Profile() {
       homeACUsage: z.enum(['track', 'could-better', 'not-really']),
       createdAt: z.string()
     }),
-    dailyLogs: z.record(z.any()).optional(),
+    dailyLogs: z.record(z.string(), z.any()).optional(),
     garden: z.object({
       trees: z.number(),
       flowers: z.number(),
@@ -99,9 +99,9 @@ export default function Profile() {
         }
         const data = parsed.data;
         useSustainlyStore.setState({
-          profile: data.profile,
-          dailyLogs: data.dailyLogs || {},
-          garden: data.garden || { trees: 0, flowers: 0, lastGrown: new Date().toISOString() },
+          profile: data.profile as any,
+          dailyLogs: (data.dailyLogs as any) || {},
+          garden: (data.garden as any) || { trees: 0, flowers: 0, lastGrown: new Date().toISOString() },
           streak: data.streak || 0,
           lastLoggedDate: data.lastLoggedDate || null,
           todaysActions: data.todaysActions || []
