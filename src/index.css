@@ -109,9 +109,21 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-sway, .animate-swaySlow, .animate-grow, 
-  [class*="animate-"] {
-    animation: none !important;
-    transform: none !important;
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* Global focus-visible styles */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary);
+  border-radius: 4px;
 }

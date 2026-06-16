@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import { app, startServer } from '../server';
+import { app } from '../server';
 import { generateInsights, generateActivityLog } from '../server/services/geminiService';
 
 // Mock the Gemini service functions

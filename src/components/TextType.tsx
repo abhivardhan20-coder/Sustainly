@@ -6,7 +6,7 @@ import './TextType.css';
 
 interface TextTypeProps {
   text: string | string[];
-  as?: any;
+  as?: React.ElementType;
   typingSpeed?: number;
   initialDelay?: number;
   pauseDuration?: number;

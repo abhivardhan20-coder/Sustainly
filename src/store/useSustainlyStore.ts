@@ -1,11 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { UserProfile, DailyLog, GardenState, RecommendedAction } from '../types';
-import { format } from 'date-fns';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 
-const syncToFirestore = async (state: any) => {
+const syncToFirestore = async (state: SustainlyStore) => {
   try {
     const user = auth.currentUser;
     if (!user) return;
@@ -17,10 +16,10 @@ const syncToFirestore = async (state: any) => {
       streak: state.streak,
       lastLoggedDate: state.lastLoggedDate,
     }, { merge: true });
-  } catch (error) {
-    console.error("Failed to sync state to Firestore:", error);
-  }
-};
+    } catch (error) {
+      console.error("Failed to sync state to Firestore:", error);
+    }
+  };
 
 export interface ChatMessage {
   id: string;
@@ -28,7 +27,21 @@ export interface ChatMessage {
   content: string;
 }
 
-export interface SustainlyStore {
+const pruneOldLogs = (logs: Record<string, DailyLog>): Record<string, DailyLog> => {
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const cutoffDate = ninetyDaysAgo.toISOString().split('T')[0];
+  
+  const pruned: Record<string, DailyLog> = {};
+  for (const [date, log] of Object.entries(logs)) {
+    if (date >= cutoffDate) {
+      pruned[date] = log;
+    }
+  }
+  return pruned;
+};
+
+interface SustainlyStore {
   profile: UserProfile | null;
   dailyLogs: Record<string, DailyLog>; 
   garden: GardenState;
@@ -97,18 +110,22 @@ export const useSustainlyStore = create<SustainlyStore>()(
             lastLoggedDate = log.date;
           }
 
+          const updatedLogs = {
+            ...state.dailyLogs,
+            [log.date]: {
+              date: log.date,
+              activities: newActivities,
+              totalPoints
+            }
+          };
+
+          const allTotalPoints = Object.values(updatedLogs).reduce((sum, l) => sum + l.totalPoints, 0);
+
           return {
-            dailyLogs: {
-              ...state.dailyLogs,
-              [log.date]: {
-                date: log.date,
-                activities: newActivities,
-                totalPoints
-              }
-            },
+            dailyLogs: pruneOldLogs(updatedLogs),
             garden: {
               ...state.garden,
-              trees: state.garden.trees + 1, // grows simple for MVP
+              trees: Math.floor(allTotalPoints / 50),
             },
             streak,
             lastLoggedDate

@@ -13,5 +13,5 @@ test('redirects unauthenticated user to login', async ({ page }) => {
 test('login page renders correctly', async ({ page }) => {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await expect(page.locator('text=Sign in')).toBeVisible();
+  await expect(page.locator('text=Continue with Google')).toBeVisible();
 });

@@ -19,6 +19,7 @@ vi.mock('../store/useSustainlyStore', async () => {
       createdAt: '2024-06-01T00:00:00.000Z'
     },
     streak: 7,
+    garden: { trees: 15, flowers: 10, lastGrown: null },
     dailyLogs: {
       '2024-06-01': {
         activities: [{ id: '1', type: 'transport', description: 'Bike', points: 10, icon: 'bike' }],
@@ -91,7 +92,7 @@ describe('Profile Component', () => {
         <Profile />
       </BrowserRouter>
     );
-    expect(screen.getByText('vegan')).toBeInTheDocument();
+    expect(screen.getByText('vegan Diet')).toBeInTheDocument();
   });
 
   it('displays commute information', () => {
@@ -100,7 +101,8 @@ describe('Profile Component', () => {
         <Profile />
       </BrowserRouter>
     );
-    expect(screen.getByText('bike, walk')).toBeInTheDocument();
+    expect(screen.getByText('bike')).toBeInTheDocument();
+    expect(screen.getByText('walk')).toBeInTheDocument();
   });
 
   it('has edit and logout buttons', () => {
@@ -109,8 +111,8 @@ describe('Profile Component', () => {
         <Profile />
       </BrowserRouter>
     );
-    expect(screen.getByLabelText('Edit profile preferences')).toBeInTheDocument();
-    expect(screen.getByLabelText('Log out of Sustainly')).toBeInTheDocument();
+    expect(screen.getByText('Edit Profile')).toBeInTheDocument();
+    expect(screen.getByLabelText('Log out')).toBeInTheDocument();
   });
 
   it('has data management buttons', () => {
@@ -119,8 +121,8 @@ describe('Profile Component', () => {
         <Profile />
       </BrowserRouter>
     );
-    expect(screen.getByLabelText('Export all your data as JSON file')).toBeInTheDocument();
-    expect(screen.getByLabelText('Clear all activity data and logs')).toBeInTheDocument();
+    expect(screen.getByText('Export Data')).toBeInTheDocument();
+    expect(screen.getByText('Clear History')).toBeInTheDocument();
   });
 
   it('renders dark mode toggle', () => {
@@ -129,15 +131,17 @@ describe('Profile Component', () => {
         <Profile />
       </BrowserRouter>
     );
-    expect(screen.getByLabelText('Toggle dark mode')).toBeInTheDocument();
+    expect(screen.getByText('Theme')).toBeInTheDocument();
   });
 
   it('returns null when no profile', () => {
     const mockStore = useSustainlyStore as unknown as ReturnType<typeof vi.fn>;
-    mockStore.mockImplementation((selector: any) => {
+    mockStore.mockImplementation((selector: (state: unknown) => unknown) => {
       const state = {
         profile: null,
-        streak: 0,
+        streak: 7,
+        garden: { trees: 5, flowers: 10, lastGrown: null },
+        lastLoggedDate: '2024-01-01',
         dailyLogs: {},
         resetAllData: vi.fn(),
         clearActivityLogs: vi.fn(),

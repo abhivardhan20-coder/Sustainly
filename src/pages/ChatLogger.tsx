@@ -11,7 +11,7 @@ export default function ChatLogger() {
   const { profile, addLog, setSuggestedAction, completeAction, todaysActions, messages, setMessages } = useSustainlyStore();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loggedResult, setLoggedResult] = useState<any>(null);
+  const [loggedResult, setLoggedResult] = useState<Record<string, any> | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -68,11 +68,11 @@ export default function ChatLogger() {
       if (data.activities && data.activities.length > 0) {
         setLoggedResult(data);
         
-        const totalPoints = data.activities.reduce((sum: number, act: any) => sum + (act.points || 0), 0);
+        const totalPoints = data.activities.reduce((sum: number, act: { points?: number }) => sum + (act.points || 0), 0);
         
         addLog({
           date: format(new Date(), 'yyyy-MM-dd'),
-          activities: data.activities.map((act: any) => ({
+          activities: data.activities.map((act: Record<string, any>) => ({
             ...act,
             id: act.id || crypto.randomUUID(),
             timestamp: act.timestamp || new Date().toISOString()
@@ -91,9 +91,10 @@ export default function ChatLogger() {
         // Sync server-calculated streak and lastLoggedDate
         await useSustainlyStore.getState().loadFromFirestore();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
        console.error("Failed to log", error);
-       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'ai', content: error.message || "Oops, I had trouble understanding that. Could you try again?" }]);
+       const errMsg = error instanceof Error ? error.message : "Oops, I had trouble understanding that. Could you try again?";
+       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'ai', content: errMsg }]);
     } finally {
       setLoading(false);
     }
@@ -120,12 +121,12 @@ export default function ChatLogger() {
   
     recognition.onstart = () => setIsRecording(true);
   
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: { results: { transcript: string }[][] }) => {
       const transcript = event.results[0][0].transcript;
       setInput(prev => prev ? prev + " " + transcript : transcript);
     };
   
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: { error: string }) => {
       if (event.error === 'not-allowed') {
         setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'ai', content: "Microphone access is not allowed. Please check your browser permissions, or open the app in a new tab." }]);
       } else {

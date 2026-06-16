@@ -36,7 +36,17 @@ function buildGradientVars(colors: string[]) {
 function easeOutCubic(x: number) { return 1 - Math.pow(1 - x, 3); }
 function easeInCubic(x: number) { return x * x * x; }
 
-function animateValue({ start = 0, end = 100, duration = 1000, delay = 0, ease = easeOutCubic, onUpdate, onEnd }: any) {
+interface AnimateParams {
+  start?: number;
+  end?: number;
+  duration?: number;
+  delay?: number;
+  ease?: (x: number) => number;
+  onUpdate?: (v: number) => void;
+  onEnd?: () => void;
+}
+
+function animateValue({ start = 0, end = 100, duration = 1000, delay = 0, ease = easeOutCubic, onUpdate, onEnd }: AnimateParams) {
   const t0 = performance.now() + delay;
   function tick() {
     const elapsed = performance.now() - t0;
@@ -134,15 +144,15 @@ const BorderGlow: React.FC<BorderGlowProps> = ({
     card.classList.add('sweep-active');
     card.style.setProperty('--cursor-angle', `${angleStart}deg`);
 
-    animateValue({ duration: 500, onUpdate: (v: any) => card.style.setProperty('--edge-proximity', v) });
-    animateValue({ ease: easeInCubic, duration: 1500, end: 50, onUpdate: (v: any) => {
+    animateValue({ duration: 500, onUpdate: (v: number) => card.style.setProperty('--edge-proximity', v.toString()) });
+    animateValue({ ease: easeInCubic, duration: 1500, end: 50, onUpdate: (v: number) => {
       card.style.setProperty('--cursor-angle', `${(angleEnd - angleStart) * (v / 100) + angleStart}deg`);
     }});
-    animateValue({ ease: easeOutCubic, delay: 1500, duration: 2250, start: 50, end: 100, onUpdate: (v: any) => {
+    animateValue({ ease: easeOutCubic, delay: 1500, duration: 2250, start: 50, end: 100, onUpdate: (v: number) => {
       card.style.setProperty('--cursor-angle', `${(angleEnd - angleStart) * (v / 100) + angleStart}deg`);
     }});
     animateValue({ ease: easeInCubic, delay: 2500, duration: 1500, start: 100, end: 0,
-      onUpdate: (v: any) => card.style.setProperty('--edge-proximity', v),
+      onUpdate: (v: number) => card.style.setProperty('--edge-proximity', v.toString()),
       onEnd: () => card.classList.remove('sweep-active'),
     });
   }, [animated]);

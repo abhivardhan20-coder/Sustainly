@@ -3,6 +3,19 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useSustainlyStore } from './store/useSustainlyStore';
 
 describe('Sustainly Store', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-13T12:00:00Z'));
+    useSustainlyStore.setState({
+      profile: null,
+      dailyLogs: {},
+      garden: { trees: 0, flowers: 0, lastGrown: null },
+      streak: 0,
+      lastLoggedDate: null,
+      theme: 'light',
+    });
+  });
+
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -20,10 +33,10 @@ describe('Sustainly Store', () => {
 
   it('should allow adding daily logs', () => {
     const log = {
-      date: '2024-01-01',
+      date: '2026-06-01',
       activities: [{ 
         id: '123',
-        timestamp: '2024-01-01T12:00:00Z',
+        timestamp: '2026-06-01T12:00:00Z',
         type: 'transport',
         description: 'Bike ride',
         category: 'transport',
@@ -36,18 +49,17 @@ describe('Sustainly Store', () => {
     } as any;
     useSustainlyStore.getState().addLog(log);
     const logs = useSustainlyStore.getState().dailyLogs;
-    expect(logs['2024-01-01']).toBeDefined();
-    expect(logs['2024-01-01'].totalPoints).toBe(10);
+    expect(logs['2026-06-01']).toBeDefined();
+    expect(logs['2026-06-01'].totalPoints).toBe(10);
   });
 
   it('should calculate streak for consecutive days', () => {
-    useSustainlyStore.setState({ streak: 1, lastLoggedDate: '2024-01-01' });
+    useSustainlyStore.setState({ streak: 1, lastLoggedDate: '2026-06-01' });
     
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2024-01-02T12:00:00Z'));
+    vi.setSystemTime(new Date('2026-06-02T12:00:00Z'));
 
     const log = {
-      date: '2024-01-02',
+      date: '2026-06-02',
       activities: [],
       totalPoints: 5
     } as any;
@@ -58,13 +70,12 @@ describe('Sustainly Store', () => {
   });
 
   it('should reset streak for gaps in days', () => {
-    useSustainlyStore.setState({ streak: 5, lastLoggedDate: '2024-01-01' });
+    useSustainlyStore.setState({ streak: 5, lastLoggedDate: '2026-06-01' });
     
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2024-01-03T12:00:00Z'));
+    vi.setSystemTime(new Date('2026-06-03T12:00:00Z'));
 
     const log = {
-      date: '2024-01-03',
+      date: '2026-06-03',
       activities: [],
       totalPoints: 5
     } as any;
@@ -76,9 +87,9 @@ describe('Sustainly Store', () => {
 
   it('should clear activity logs', () => {
     useSustainlyStore.setState({
-      dailyLogs: { '2024-01-01': { date: '2024-01-01', activities: [], totalPoints: 10 } } as any,
+      dailyLogs: { '2026-06-01': { date: '2026-06-01', activities: [], totalPoints: 10 } } as any,
       streak: 5,
-      lastLoggedDate: '2024-01-01'
+      lastLoggedDate: '2026-06-01'
     });
     
     useSustainlyStore.getState().clearActivityLogs();

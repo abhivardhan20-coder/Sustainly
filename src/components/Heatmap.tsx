@@ -13,7 +13,7 @@ export default function Heatmap({ logs, days = 365 }: HeatmapProps) {
     const startDate = subDays(today, days - 1);
     const startDayOfWeek = startDate.getDay(); // 0 (Sun) to 6 (Sat)
 
-    const daysArray: any[] = [];
+    const daysArray: ({ date: Date; dateString: string; points: number; activitiesCount: number } | null)[] = [];
     
     // Pad empty spaces at the beginning so the first row always aligns to Sunday
     for (let i = 0; i < startDayOfWeek; i++) {
@@ -73,8 +73,10 @@ export default function Heatmap({ logs, days = 365 }: HeatmapProps) {
               return (
                 <div
                   key={day.dateString}
-                  className={`w-3 h-3 rounded-sm ${getColor(day.points)} hover:ring-2 ring-primary/50 transition-all cursor-pointer`}
-                  title={`${day.dateString}: ${day.points} pts, ${day.activitiesCount} activities`}
+                  className={`w-3 h-3 rounded-sm cursor-pointer transition-colors ${getColor(day.points)} hover:ring-2 ring-primary/50`}
+                  title={`${format(day.date, 'MMM d, yyyy')}: ${day.points} pts (${day.activitiesCount} activities)`}
+                  role="gridcell"
+                  aria-label={`${format(day.date, 'MMM d, yyyy')}, ${day.points} points, ${day.activitiesCount} activities`}
                 />
               );
             })}

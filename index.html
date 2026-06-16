@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Sustainly is an AI-powered sustainability companion that helps you track your daily carbon footprint, earn impact points, and grow a virtual garden through eco-friendly choices." />
     <meta name="theme-color" content="#166534" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website" />
@@ -22,5 +24,12 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>

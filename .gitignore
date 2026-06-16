@@ -7,8 +7,4 @@ test-results/
 .env.*
 !.env.example
 *.log
-README_SYNC_v*.md
 .DS_Store
-sync_readme.py
-scripts/test_gemini.ts
-scripts/list_models.ts

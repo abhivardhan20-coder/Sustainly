@@ -6,23 +6,15 @@ describe('LRU Cache', () => {
     insightsCache.clear();
   });
 
-  it('should store and retrieve values', () => {
+  it('should store and retrieve values', async () => {
     const key = 'test-key';
     const value = ['tip1', 'tip2'];
-    insightsCache.set(key, value);
-    expect(insightsCache.get(key)).toEqual(value);
+    await insightsCache.set(key, value);
+    expect(await insightsCache.get(key)).toEqual(value);
   });
 
-  it('should return undefined for missing keys', () => {
-    expect(insightsCache.get('nonexistent')).toBeUndefined();
-  });
-
-  it('should respect max capacity', () => {
-    // Cache max is 500
-    for (let i = 0; i < 510; i++) {
-      insightsCache.set(`key-${i}`, [`value-${i}`]);
-    }
-    expect(insightsCache.size).toBeLessThanOrEqual(500);
+  it('should return null for missing keys', async () => {
+    expect(await insightsCache.get('nonexistent')).toBeNull();
   });
 
   it('should generate deterministic cache keys', () => {

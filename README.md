@@ -97,7 +97,6 @@ graph TB
 * Streaming AI responses for real-time chat experience
 * CORS policy enforcement for production deployment
 * Image MIME type allowlisting (JPEG, PNG, WebP, GIF only)
-* Redis-based caching for horizontal scalability
 * Focus trap implementation on modal dialogs (WCAG 2.1 compliance)
 * Leaderboards and social features
 * Integration with real carbon tracking APIs or IoT devices

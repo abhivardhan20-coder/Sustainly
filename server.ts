@@ -1,3 +1,4 @@
+
 import { fileURLToPath } from 'url';
 import express from "express";
 import cors from 'cors';
@@ -7,6 +8,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import { join } from 'path';
 import apiRoutes from './server/routes/api';
+import carbonRoutes from './server/routes/carbon';
 import { logger } from './server/utils/logger';
 import "dotenv/config";
 
@@ -35,7 +37,7 @@ app.use(helmet({
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? process.env.ALLOWED_ORIGIN || 'https://sustainly.app'
+    ? [process.env.FRONTEND_URL as string]
     : ['http://localhost:4321', 'http://localhost:5173'],
   credentials: true
 }));
@@ -69,6 +71,7 @@ app.use((req, res, next) => {
 const limiter = rateLimit({
   windowMs: 60000,
   max: 30,
+  validate: { ip: false },
   handler: (req, res, next, options) => {
     const safeIp = req.ip ? req.ip.replace(/\.\d+$/, '.xxx') : 'unknown';
     logger.warn(`[Security Alert] Global rate limit exceeded! IP: ${safeIp} path: ${req.originalUrl}`);
@@ -77,12 +80,13 @@ const limiter = rateLimit({
 });
 
 app.use('/api/', limiter);
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
 
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.urlencoded({ limit: '1mb', extended: true }));
 
 // Mount modular API routes
 app.use('/api', apiRoutes);
+app.use('/api/carbon', carbonRoutes);
 
 // Vite middleware for development
 if (process.env.NODE_ENV !== "production") {

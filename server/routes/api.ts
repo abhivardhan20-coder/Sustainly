@@ -12,7 +12,7 @@ const router = express.Router();
 const aiLimiter = rateLimit({
   windowMs: 60000,
   max: 5,
-  keyGenerator: (req) => req.user?.uid || req.ip || 'unknown',
+  keyGenerator: (req) => req.user?.uid || 'anonymous',
   handler: (req, res, next, options) => {
     const safeIp = req.ip ? req.ip.replace(/\.\d+$/, '.xxx') : 'unknown';
     logger.warn(`[Abuse Protection] AI rate limit exceeded! UID: ${req.user?.uid || 'none'} IP: ${safeIp} path: ${req.originalUrl}`);
@@ -27,15 +27,16 @@ router.post('/insights', aiLimiter, async (req, res) => {
   try {
     const parseResult = insightsRequestSchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ error: "Invalid request format", details: parseResult.error.format() });
+      return res.status(400).json({ error: "Invalid request format", ...(process.env.NODE_ENV !== 'production' && { details: parseResult.error.format() }) });
     }
 
     const { profile, history } = parseResult.data;
     
     const cacheKey = generateCacheKey(profile, history);
-    const cachedInsights = insightsCache.get(cacheKey);
+    const cachedInsights = await insightsCache.get(cacheKey);
 
     if (cachedInsights) {
+      res.set('Cache-Control', 'private, max-age=3600');
       return res.json(cachedInsights);
     }
 
@@ -51,7 +52,8 @@ router.post('/insights', aiLimiter, async (req, res) => {
           const today = new Date().toISOString().split('T')[0];
           
           if (data.dailyInsights && data.dailyInsights.date === today) {
-            insightsCache.set(cacheKey, data.dailyInsights.tips);
+            await insightsCache.set(cacheKey, data.dailyInsights.tips);
+            res.set('Cache-Control', 'private, max-age=3600');
             return res.json(data.dailyInsights.tips);
           }
           
@@ -66,7 +68,8 @@ router.post('/insights', aiLimiter, async (req, res) => {
             }
           }, { merge: true });
           
-          insightsCache.set(cacheKey, result);
+          await insightsCache.set(cacheKey, result);
+          res.set('Cache-Control', 'private, max-age=3600');
           return res.json(result);
         }
       } catch (dbError) {
@@ -76,11 +79,12 @@ router.post('/insights', aiLimiter, async (req, res) => {
 
     // Fallback if no uid or db error
     const result = await generateInsights(profile || null, history || []);
-    insightsCache.set(cacheKey, result);
+    await insightsCache.set(cacheKey, result);
+    res.set('Cache-Control', 'private, max-age=3600');
     res.json(result);
 
-  } catch (error: any) {
-    logger.error(`[API Error] Gemini insights generation failed: ${error?.message || String(error)}`);
+  } catch (error: unknown) {
+    logger.error(`[API Error] Gemini insights generation failed: ${error instanceof Error ? error.message : String(error)}`);
     res.json([
       "🚴 Biking 3 days/week saves 1k lbs CO2",
       "💡 LED bulbs use 75% less energy",
@@ -96,7 +100,7 @@ router.post('/log', aiLimiter, async (req, res) => {
   try {
     const parseResult = logRequestSchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ error: "Invalid request format", details: parseResult.error.format() });
+      return res.status(400).json({ error: "Invalid request format", ...(process.env.NODE_ENV !== 'production' && { details: parseResult.error.format() }) });
     }
 
     const { userMessage, profile, history, imageBase64 } = parseResult.data;
@@ -128,7 +132,7 @@ router.post('/log', aiLimiter, async (req, res) => {
             const userData = userSnap.data()!;
             let streak = userData.streak || 0;
             let lastLoggedDate = userData.lastLoggedDate || null;
-            const totalPoints = result.activities.reduce((sum: number, act: any) => sum + (act.points || 0), 0);
+            const totalPoints = result.activities.reduce((sum: number, act: { points?: number }) => sum + (act.points || 0), 0);
             
             let currentActivities = [];
             let currentDailyPoints = 0;
@@ -168,11 +172,11 @@ router.post('/log', aiLimiter, async (req, res) => {
 
     res.json(result);
 
-  } catch (error: any) {
-    if (error.message === "Invalid image format" || error.message === "Invalid image data") {
+  } catch (error: unknown) {
+    if (error instanceof Error && (error.message === "Invalid image format" || error.message === "Invalid image data")) {
       return res.status(400).json({ error: error.message });
     }
-    logger.error(`[API Error] Gemini log generation failed: ${error?.message || String(error)}`);
+    logger.error(`[API Error] Gemini log generation failed: ${error instanceof Error ? error.message : String(error)}`);
     res.status(500).json({ error: "Failed to parse activity due to high demand. Please try again." });
   }
 });

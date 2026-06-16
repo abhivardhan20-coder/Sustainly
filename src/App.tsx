@@ -14,6 +14,7 @@ import { lazy, Suspense } from 'react';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Garden = lazy(() => import('./pages/Garden'));
 const History = lazy(() => import('./pages/History'));
+const Learn = lazy(() => import('./pages/Learn'));
 import ChatLogger from './pages/ChatLogger';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
@@ -90,6 +91,7 @@ export default function App() {
           <Route path="/log" element={<ChatLogger />} />
           <Route path="/garden" element={<Suspense fallback={<div className="flex h-full items-center justify-center p-8 text-primary">Loading...</div>}><Garden /></Suspense>} />
           <Route path="/history" element={<Suspense fallback={<div className="flex h-full items-center justify-center p-8 text-primary">Loading...</div>}><History /></Suspense>} />
+          <Route path="/learn" element={<Suspense fallback={<div className="flex h-full items-center justify-center p-8 text-primary">Loading...</div>}><Learn /></Suspense>} />
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>
