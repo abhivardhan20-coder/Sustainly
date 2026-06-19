@@ -27,7 +27,7 @@ jobs:
     - name: Security Audit
       run: npm audit --audit-level=moderate
 
-    - name: Run TypeScript check
+    - name: Run linting and type check
       run: npm run lint
 
     - name: Run tests with coverage

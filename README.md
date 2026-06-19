@@ -79,6 +79,13 @@ graph TB
 * **Privacy protections:** No public sharing of user data; email authentication + Firebase rules limit unauthorized access.
 * **No secrets in frontend:** `GEMINI_API_KEY` lives only on the backend.
 
+## Accessibility
+Sustainly prioritizes real-world usability and complies with WCAG 2.1 guidelines. Key features include:
+* **Keyboard Navigation**: Full support for tabbing through interactive elements without mouse dependency.
+* **Focus Trap**: Modals use `FocusTrap.tsx` to ensure users cannot tab out of active dialogs.
+* **ARIA Usage**: Thorough implementation of ARIA labels, roles, and descriptions (e.g., in `AccessibleChat.tsx`) for screen reader support.
+* **Continuous Auditing**: CI pipelines run automated accessibility checks using `@axe-core/playwright` to prevent regressions.
+
 ## Testing
 * **How to run tests:** `npm run test`
 * **Current tests:** 
