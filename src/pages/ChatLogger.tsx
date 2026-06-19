@@ -18,10 +18,7 @@ export default function ChatLogger() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Check if current suggested action is completed
-  const currentSuggestedAction = loggedResult?.suggestedAction;
-  const isActionCompleted = currentSuggestedAction 
-    ? todaysActions.some(a => a.id === currentSuggestedAction.id && a.completed)
-    : false;
+  const isActionCompleted = todaysActions[0]?.completed || false;
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -113,12 +110,14 @@ export default function ChatLogger() {
   };
 
   const handleCompleteSuggestedAction = () => {
-    if (!currentSuggestedAction) return;
-    completeAction(currentSuggestedAction.id);
+    if (todaysActions[0]) {
+      completeAction(todaysActions[0].id);
+    }
   };
 
   const handleVoice = () => {
-    const SpeechRecognition = (window as Window & { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition || (window as Window & { webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Voice input is not supported in this browser.");
       return;

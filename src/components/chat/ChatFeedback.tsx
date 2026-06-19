@@ -4,9 +4,9 @@ import BorderGlow from '../BorderGlow';
 
 interface Props {
   loggedResult: {
-    activities: { description: string; points: number; icon: string }[];
+    activities?: { description: string; points: number; icon: string }[];
     suggestedAction?: { title: string; description: string; btnText: string };
-  };
+  } | null;
   handleCompleteSuggestedAction: () => void;
   isActionCompleted: boolean;
 }
@@ -21,7 +21,7 @@ const IconMap: Record<string, React.ComponentType<{ size?: number; className?: s
 };
 
 export default function ChatFeedback({ loggedResult, handleCompleteSuggestedAction, isActionCompleted }: Props) {
-  if (!loggedResult) return null;
+  if (!loggedResult || !loggedResult.activities || loggedResult.activities.length === 0) return null;
 
   return (
     <div 

@@ -23,7 +23,7 @@ export default defineConfig({
     ],
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    exclude: ['e2e/**', 'node_modules/**'],
+    exclude: ['e2e/**', 'tests/e2e/**', 'node_modules/**'],
   },
   resolve: {
     alias: {

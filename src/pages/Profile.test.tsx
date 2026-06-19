@@ -1,4 +1,5 @@
 /** @vitest-environment jsdom */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -7,7 +8,7 @@ import Profile from './Profile';
 import { useSustainlyStore } from '../store/useSustainlyStore';
 
 vi.mock('../store/useSustainlyStore', async () => {
-  const actual = await vi.importActual<unknown>('../store/useSustainlyStore');
+  const actual = await vi.importActual<any>('../store/useSustainlyStore');
   const mockState = {
     profile: {
       id: 'user-1',

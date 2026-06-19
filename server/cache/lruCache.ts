@@ -4,7 +4,7 @@ import type { LogAnalysisResult } from '../services/geminiService';
 
 const TTL = 1000 * 60 * 30; // 30 minutes
 
-const memoryCache = new LRUCache<string, unknown>({
+const memoryCache = new LRUCache<string, string[] | LogAnalysisResult>({
   max: 500,
   ttl: TTL,
 });

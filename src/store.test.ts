@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useSustainlyStore } from './store/useSustainlyStore';
+import { DailyLog } from './types';
 
 describe('Sustainly Store', () => {
   beforeEach(() => {
@@ -46,7 +47,7 @@ describe('Sustainly Store', () => {
         confidenceScore: 0.9 
       }],
       totalPoints: 10
-    } as unknown as Record<string, unknown>;
+    } as unknown as DailyLog;
     useSustainlyStore.getState().addLog(log);
     const logs = useSustainlyStore.getState().dailyLogs;
     expect(logs['2026-06-01']).toBeDefined();
@@ -62,7 +63,7 @@ describe('Sustainly Store', () => {
       date: '2026-06-02',
       activities: [],
       totalPoints: 5
-    } as unknown as Record<string, unknown>;
+    } as unknown as DailyLog;
     
     useSustainlyStore.getState().addLog(log);
     const streak = useSustainlyStore.getState().streak;
@@ -78,7 +79,7 @@ describe('Sustainly Store', () => {
       date: '2026-06-03',
       activities: [],
       totalPoints: 5
-    } as unknown as Record<string, unknown>;
+    } as unknown as DailyLog;
     
     useSustainlyStore.getState().addLog(log);
     const streak = useSustainlyStore.getState().streak;
@@ -87,7 +88,7 @@ describe('Sustainly Store', () => {
 
   it('should clear activity logs', () => {
     useSustainlyStore.setState({
-      dailyLogs: { '2026-06-01': { date: '2026-06-01', activities: [], totalPoints: 10 } } as unknown as Record<string, unknown>,
+      dailyLogs: { '2026-06-01': { date: '2026-06-01', activities: [], totalPoints: 10 } } as unknown as Record<string, DailyLog>,
       streak: 5,
       lastLoggedDate: '2026-06-01'
     });

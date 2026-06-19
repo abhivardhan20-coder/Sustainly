@@ -34,7 +34,11 @@ export default function Garden() {
         </div>
 
         {/* Garden Container */}
-        <div className="relative w-full aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-surface-variant/20 flex flex-col justify-end p-8 bg-gradient-to-b from-surface to-soft-sage/40">
+        <div 
+          role="img"
+          aria-label="Garden"
+          className="relative w-full aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-surface-variant/20 flex flex-col justify-end p-8 bg-gradient-to-b from-surface to-soft-sage/40"
+        >
           
           <div className="absolute top-8 left-8 flex gap-2 opacity-60">
              <div className="animate-swaySlow bg-white rounded-full w-12 h-6 blur-[8px] opacity-80 backdrop-blur" />

@@ -53,6 +53,11 @@ graph TB
 * **Virtual Garden:** A visual representation of user impact, growing trees and flowers based on points earned.
 * **Gamification:** Streaks, points, and daily suggested actions.
 * **Dark Mode:** Seamless light/dark theme persistence across sessions.
+* **Offline Support & PWA:** Full service worker caching for static assets and stale-while-revalidate caching for Gemini insights, enabling offline access.
+
+## Code Quality & Architecture
+* **useAuth Hook & LoadingScreen:** Authentication logic is isolated into a clean, custom `useAuth` hook, separating concerns from `App.tsx` and providing a dedicated `LoadingScreen` component.
+* **Type Safety & Zod Validation:** The Zustand store slices are hardened with Zod schema validation for profile profiles and strict TypeScript definitions, preventing data pollution from Firestore.
 
 ## Setup Instructions
 * **Installation:** Run `npm install`
@@ -75,25 +80,26 @@ graph TB
 
 ## Security Considerations
 * **Data handling:** User profiles and logs are stored in Firestore, protected by `firestore.rules` so users can only read/write their own data.
+* **CSRF Protection:** Hardened with a global backend CSRF protection middleware (`csrfProtection`) on all mutating HTTP methods (POST, PUT, DELETE, PATCH) and cookie tokens coupled with a frontend fetch interceptor (`apiClient`).
 * **API Protection:** Strict rate limiting on AI endpoints (5 requests/min per IP) + input validation.
 * **Privacy protections:** No public sharing of user data; email authentication + Firebase rules limit unauthorized access.
 * **No secrets in frontend:** `GEMINI_API_KEY` lives only on the backend.
 
 ## Accessibility
-Sustainly prioritizes real-world usability and complies with WCAG 2.1 guidelines. Key features include:
+Sustainly complies with WCAG 2.1 guidelines. Key features include:
 * **Keyboard Navigation**: Full support for tabbing through interactive elements without mouse dependency.
-* **Focus Trap**: Modals use `FocusTrap.tsx` to ensure users cannot tab out of active dialogs.
+* **Focus Trap & Accessible Dialog**: Reusable, screen-reader friendly `Dialog` component implementing focus traps, Escape key dismissal, and appropriate ARIA attributes (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`).
 * **ARIA Usage**: Thorough implementation of ARIA labels, roles, and descriptions (e.g., in `AccessibleChat.tsx`) for screen reader support.
 * **Continuous Auditing**: CI pipelines run automated accessibility checks using `@axe-core/playwright` to prevent regressions.
 
 ## Testing
-* **How to run tests:** `npm run test`
-* **Current tests:** 
-  - Store logic (`src/store.test.ts`)
-  - AI API endpoints (`tests/api.test.ts`)
-  - Gemini Service (`tests/geminiService.test.ts`)
-  - Rate limiting & auth logic (`tests/rateLimit.test.ts`, `tests/authentication.test.ts`)
-* **Note:** Tests are gated at 80% coverage in `vitest.config.ts`. Run `npm run test -- --coverage` to see the report.
+* **How to run tests:**
+  - Unit/Integration Tests: `npm run test` (Vitest)
+  - End-to-End Tests: `npx playwright test` (Playwright)
+* **Test Coverage:**
+  - Unit & integration tests are configured with a minimum of 80% coverage check in `vitest.config.ts`.
+  - Playwright E2E tests cover the complete user journey: login → onboarding → Chat AI logging → garden growth, and run automated accessibility scans.
+* **CI Integration:** A GitHub Actions workflow (`ci.yml`) runs both unit/integration tests and Playwright E2E tests automatically on every push or PR to `main`.
 
 ## Troubleshooting
 * **Firebase errors (Permission Denied):** Ensure your `firestore.rules` are deployed correctly, or you are signed in.
@@ -105,5 +111,4 @@ Sustainly prioritizes real-world usability and complies with WCAG 2.1 guidelines
 * Leaderboards and social features
 * Integration with real carbon tracking APIs or IoT devices
 * Push notifications for streak reminders
-* Offline mode with service worker support
 * Data export in multiple formats (CSV, PDF)

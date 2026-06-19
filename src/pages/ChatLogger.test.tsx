@@ -1,4 +1,5 @@
 /** @vitest-environment jsdom */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -12,7 +13,7 @@ beforeAll(() => {
 
 // Mock store
 vi.mock('../store/useSustainlyStore', async () => {
-  const actual = await vi.importActual<unknown>('../store/useSustainlyStore');
+  const actual = await vi.importActual<any>('../store/useSustainlyStore');
   const mockState = {
     profile: { name: 'Test', diet: 'vegan', primaryCommute: ['bike'] },
     addLog: vi.fn(),

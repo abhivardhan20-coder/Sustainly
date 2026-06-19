@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../server';
@@ -38,7 +39,7 @@ vi.mock('firebase-admin/firestore', () => {
   return {
     getFirestore: vi.fn().mockReturnValue({
       collection: vi.fn().mockReturnValue(mockCollection),
-      runTransaction: vi.fn().mockImplementation(async (fn: unknown) => {
+      runTransaction: vi.fn().mockImplementation(async (fn: any) => {
         const t = {
           get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ streak: 1, lastLoggedDate: null }) }),
           set: vi.fn()

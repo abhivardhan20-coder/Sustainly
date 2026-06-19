@@ -5,7 +5,7 @@ import { useSustainlyStore } from '../store/useSustainlyStore';
 interface Notification {
   id: string;
   type: 'insight' | 'streak' | 'garden' | 'achievement';
-  icon: React.ComponentType<unknown>;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   title: string;
   content: string;
   time: string;

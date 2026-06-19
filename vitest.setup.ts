@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import 'fake-indexeddb/auto';
 import { TextEncoder, TextDecoder } from 'util';
 Object.assign(global, { TextDecoder, TextEncoder });
 
@@ -9,6 +10,17 @@ const mockIntersectionObserver = class {
   disconnect() {}
 };
 Object.assign(global, { IntersectionObserver: mockIntersectionObserver });
+
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+Object.assign(global, { ResizeObserver: ResizeObserverMock });
+
+if (typeof window !== 'undefined' && window.HTMLElement) {
+  window.HTMLElement.prototype.scrollIntoView = function() {};
+}
 class LocalStorageMock {
   store: Record<string, string> = {};
   getItem(key: string) { return this.store[key] || null; }
