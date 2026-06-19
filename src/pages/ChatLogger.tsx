@@ -12,7 +12,7 @@ export default function ChatLogger() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [loggedResult, setLoggedResult] = useState<Record<string, any> | null>(null);
+  const [loggedResult, setLoggedResult] = useState<{ activities?: Array<{ id: string; type: string; description: string; points: number; icon: string }>; message?: string; suggestedAction?: { title: string; description: string; btnText: string } } | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -84,7 +84,7 @@ export default function ChatLogger() {
         
         addLog({
           date: format(new Date(), 'yyyy-MM-dd'),
-          activities: data.activities.map((act: Record<string, any>) => ({
+          activities: data.activities.map((act: { id?: string; type: string; description: string; points: number; icon: string; timestamp?: string; source?: string }) => ({
             ...act,
             id: act.id || crypto.randomUUID(),
             timestamp: act.timestamp || new Date().toISOString()
@@ -118,7 +118,7 @@ export default function ChatLogger() {
   };
 
   const handleVoice = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as Window & { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition || (window as Window & { webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Voice input is not supported in this browser.");
       return;

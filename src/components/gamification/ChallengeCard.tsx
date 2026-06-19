@@ -9,7 +9,7 @@ interface ChallengeCardProps {
   onProgress?: (id: string) => void;
 }
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<any>> = {
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   transport: Car,
   food: Utensils,
   home: Home,

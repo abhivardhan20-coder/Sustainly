@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSustainlyStore } from '../store/useSustainlyStore';
 import { Building2, Home, Trees, Utensils, Fish, Leaf, Apple, Car, Bus, Bike, Footprints } from 'lucide-react';
+import type { UserProfile } from '../types';
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -117,7 +118,7 @@ export default function Onboarding() {
                     name="diet" 
                     className="peer sr-only" 
                     checked={diet === opt.id} 
-                    onChange={() => setDiet(opt.id as any)} 
+                    onChange={() => setDiet(opt.id as UserProfile['diet'])} 
                     aria-label={opt.label}
                   />
                   <div className="px-6 py-3 rounded-full border border-surface-variant bg-surface hover:bg-surface-container-highest peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-all font-semibold text-sm flex items-center gap-2">

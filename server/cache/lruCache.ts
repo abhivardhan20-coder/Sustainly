@@ -4,7 +4,7 @@ import type { LogAnalysisResult } from '../services/geminiService';
 
 const TTL = 1000 * 60 * 30; // 30 minutes
 
-const memoryCache = new LRUCache<string, any>({
+const memoryCache = new LRUCache<string, unknown>({
   max: 500,
   ttl: TTL,
 });
@@ -14,7 +14,7 @@ export const insightsCache = {
     return memoryCache.get(key) || null;
   },
   
-  set: async (key: string, value: any, customTtl?: number): Promise<void> => {
+  set: async (key: string, value: string[] | LogAnalysisResult, customTtl?: number): Promise<void> => {
     if (customTtl) {
       memoryCache.set(key, value, { ttl: customTtl });
     } else {
@@ -31,8 +31,8 @@ export const generateCacheKey = (profile: Record<string, unknown> | null, histor
   const deterministicStringify = (obj: unknown): string => {
     if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
     if (Array.isArray(obj)) return `[${obj.map(deterministicStringify).join(',')}]`;
-    const keys = Object.keys(obj as any).sort();
-    return `{${keys.map(k => `"${k}":${deterministicStringify((obj as any)[k])}`).join(',')}}`;
+    const keys = Object.keys(obj as Record<string, unknown>).sort();
+    return `{${keys.map(k => `"${k}":${deterministicStringify((obj as Record<string, unknown>)[k])}`).join(',')}}`;
   };
 
   const profileStr = profile ? deterministicStringify(profile) : '';

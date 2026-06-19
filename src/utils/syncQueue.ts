@@ -1,9 +1,19 @@
 import { openDB } from 'idb';
 import { doc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
+import type { UserProfile, DailyLog, GardenState } from '../types';
 
 const DB_NAME = 'sustainly-sync';
 const STORE_NAME = 'sync-queue';
+
+/** Shape of the data payload sent to Firestore for sync. */
+interface SyncPayload {
+  profile: UserProfile | null;
+  dailyLogs: Record<string, DailyLog>;
+  garden: GardenState;
+  streak: number;
+  lastLoggedDate: string | null;
+}
 
 export async function initDB() {
   return openDB(DB_NAME, 1, {
@@ -15,7 +25,7 @@ export async function initDB() {
   });
 }
 
-export async function queueSync(data: any) {
+export async function queueSync(data: SyncPayload) {
   const db = await initDB();
   await db.put(STORE_NAME, { data, timestamp: Date.now() });
   
@@ -59,7 +69,7 @@ export async function processSyncQueue() {
   }
 }
 
-export function debouncedSync(data: any) {
+export function debouncedSync(data: SyncPayload) {
   if (syncTimeout) clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => {
     queueSync(data);

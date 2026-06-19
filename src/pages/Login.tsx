@@ -20,9 +20,9 @@ export default function Login() {
       if (result.user) {
         navigate('/onboarding', { state: { name: result.user.displayName || 'User' } });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Firebase Auth Error:', err);
-      setError(err.message || 'Failed to connect your account.');
+      setError(err instanceof Error ? err.message : 'Failed to connect your account.');
     } finally {
       setLoading(false);
     }

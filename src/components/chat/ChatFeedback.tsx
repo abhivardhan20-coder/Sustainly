@@ -3,12 +3,15 @@ import { CheckCircle, Lightbulb, Car, Bus, Bike, Utensils, Home, Trees, Sparkles
 import BorderGlow from '../BorderGlow';
 
 interface Props {
-  loggedResult: Record<string, any>;
+  loggedResult: {
+    activities: { description: string; points: number; icon: string }[];
+    suggestedAction?: { title: string; description: string; btnText: string };
+  };
   handleCompleteSuggestedAction: () => void;
   isActionCompleted: boolean;
 }
 
-const IconMap: Record<string, React.ComponentType<any>> = {
+const IconMap: Record<string, React.ComponentType<{ size?: number; className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>> = {
   car: Car,
   bus: Bus,
   bike: Bike,
@@ -39,7 +42,7 @@ export default function ChatFeedback({ loggedResult, handleCompleteSuggestedActi
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
-            {loggedResult.activities.map((act: Record<string, any>, i: number) => {
+            {loggedResult.activities.map((act: { description: string; points: number; icon: string }, i: number) => {
               const Icon = IconMap[act.icon] || Sparkles;
               const isPositive = act.points >= 0;
               return (

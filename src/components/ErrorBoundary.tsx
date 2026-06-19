@@ -1,45 +1,61 @@
-import React, { Component, ReactNode } from 'react';
+// src/components/ErrorBoundary.tsx
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  name?: string;
 }
 
 interface State {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  public state: State = {
-    hasError: false
-  };
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
 
-  public static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Log to monitoring service
+    console.error(`[ErrorBoundary:${this.props.name || 'root'}]`, error, errorInfo);
+    
+    // Optional: Send to Sentry or similar
+    // Sentry.captureException(error, { extra: errorInfo });
+    
+    this.props.onError?.(error, errorInfo);
   }
 
-  public render() {
+  render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+      
       return (
-        <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-4">
-          <div className="bg-red-50 text-red-600 p-6 rounded-2xl max-w-md w-full">
-            <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
-            <p className="text-sm opacity-80 mb-4">{this.state.error?.message || "An unexpected error occurred."}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-red-600 text-white px-4 py-2 rounded-xl font-medium w-full hover:bg-red-700 transition"
-            >
-              Reload Page
-            </button>
-          </div>
+        <div className="error-boundary-fallback" role="alert">
+          <h2>Something went wrong</h2>
+          <details>
+            <summary>Error details</summary>
+            <pre>{this.state.error?.message || 'Unknown error'}</pre>
+          </details>
+          <button 
+            onClick={() => this.setState({ hasError: false, error: null })}
+            aria-label="Try again"
+          >
+            Try again
+          </button>
         </div>
       );
     }
 
-    return (this as any).props.children;
+    return this.props.children;
   }
 }

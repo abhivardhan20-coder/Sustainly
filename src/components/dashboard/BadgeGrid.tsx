@@ -3,9 +3,11 @@ import type { BadgeDefinition as Badge } from '../../types';
 
 import GlassCard from '../GlassCard';
 
+import type { SustainlyStore } from '../../store/useSustainlyStore';
+
 interface BadgeGridProps {
   badges: Badge[];
-  store: any;
+  store: Pick<SustainlyStore, 'dailyLogs' | 'streak' | 'garden'>;
 }
 
 export default function BadgeGrid({ badges, store }: BadgeGridProps) {
