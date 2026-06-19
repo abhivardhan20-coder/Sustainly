@@ -11,6 +11,7 @@ import ReductionForecast from '../components/carbon/ReductionForecast';
 import ChallengeCard from '../components/gamification/ChallengeCard';
 import CarbonCalculator from '../components/carbon/CarbonCalculator';
 import FocusTrap from '../components/FocusTrap';
+import GlassCard from '../components/GlassCard';
 import type { Challenge, GardenState, DailyLog } from '../types';
 
 // Moved badges to proper types without 'any'
@@ -108,13 +109,13 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex gap-2 bg-surface-container rounded-full p-1 border border-surface-variant/50">
-          <button 
+          <button
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeTab === 'overview' ? 'bg-surface text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
           >
             Overview
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('impact')}
             className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeTab === 'impact' ? 'bg-surface text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
           >
@@ -124,7 +125,7 @@ export default function Dashboard() {
       </div>
 
       {/* Insights Ticker */}
-      <div className="mb-8 w-full bg-surface-container-low border border-surface-variant rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:bg-surface-container transition-colors focus-visible:ring-2 focus-visible:ring-primary outline-none" tabIndex={0} onClick={() => setShowInsightsModal(true)} onKeyDown={(e) => e.key === 'Enter' && setShowInsightsModal(true)} role="button">
+      <GlassCard className="mb-8 w-full flex items-center gap-4 cursor-pointer hover:bg-surface-container transition-colors focus-visible:ring-2 focus-visible:ring-primary outline-none" tabIndex={0} onClick={() => setShowInsightsModal(true)} onKeyDown={(e) => e.key === 'Enter' && setShowInsightsModal(true)} role="button">
         <div className="bg-primary/20 p-2 rounded-full flex-shrink-0">
           <Sparkles className="text-primary" size={20} />
         </div>
@@ -136,7 +137,7 @@ export default function Dashboard() {
           </div>
         </div>
         <ChevronRight className="text-on-surface-variant flex-shrink-0" size={20} />
-      </div>
+      </GlassCard>
 
       {activeTab === 'overview' ? (
         <div className="space-y-8">
@@ -173,7 +174,7 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-8">
           <CarbonCalculator />
-          
+
           <div className="pt-4 border-t border-surface-variant">
             <h2 className="text-xl font-bold text-on-surface mb-6">Activity Heatmap</h2>
             <div className="bg-surface-container-low rounded-2xl p-6 border border-surface-variant overflow-x-auto">
@@ -186,14 +187,14 @@ export default function Dashboard() {
       {/* Insights Modal */}
       {showInsightsModal && (
         <FocusTrap active={showInsightsModal}>
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface/80 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
             aria-labelledby="insights-title"
             onClick={() => setShowInsightsModal(false)}
           >
-            <div 
+            <div
               className="bg-surface-container-lowest border border-surface-variant rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-lg"
               onClick={e => e.stopPropagation()}
             >
@@ -202,7 +203,7 @@ export default function Dashboard() {
                   <Sparkles className="text-primary" size={20} />
                   <h2 id="insights-title" className="text-lg font-bold text-on-surface">Personalized Insights</h2>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowInsightsModal(false)}
                   className="p-2 rounded-full hover:bg-surface-variant text-on-surface-variant focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   aria-label="Close modal"

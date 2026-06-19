@@ -2,17 +2,26 @@ import express from 'express';
 import { requireAuth } from '../middleware/auth';
 import { logRequestSchema, insightsRequestSchema } from '../validators/apiValidators';
 import { insightsCache, generateCacheKey } from '../cache/lruCache';
-import { generateInsights, generateActivityLog } from '../services/geminiService';
+import { aiService } from '../services/geminiService';
 import { getFirestore } from 'firebase-admin/firestore';
 import { logger } from '../utils/logger';
-import rateLimit from "express-rate-limit";
+import { fallbackInsights } from '../utils/fallbackInsights';
+import { calculateStreak } from '../../src/utils/streak';
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 const router = express.Router();
 
 const aiLimiter = rateLimit({
   windowMs: 60000,
   max: 5,
-  keyGenerator: (req) => req.user?.uid || 'anonymous',
+  keyGenerator: (req, res) => {
+    // If we have a user UID, use that (so that the same user gets the same limit across IPs)
+    if (req.user?.uid) {
+      return req.user.uid;
+    }
+    // Otherwise, use IP address
+    return req.ip || 'unknown';
+  },
   handler: (req, res, next, options) => {
     const safeIp = req.ip ? req.ip.replace(/\.\d+$/, '.xxx') : 'unknown';
     logger.warn(`[Abuse Protection] AI rate limit exceeded! UID: ${req.user?.uid || 'none'} IP: ${safeIp} path: ${req.originalUrl}`);
@@ -32,7 +41,8 @@ router.post('/insights', aiLimiter, async (req, res) => {
 
     const { profile, history } = parseResult.data;
     
-    const cacheKey = generateCacheKey(profile, history);
+    const todayStr = new Date().toISOString().split('T')[0];
+    const cacheKey = `insights_${req.user?.uid || 'anon'}_${todayStr}`;
     const cachedInsights = await insightsCache.get(cacheKey);
 
     if (cachedInsights) {
@@ -58,7 +68,7 @@ router.post('/insights', aiLimiter, async (req, res) => {
           }
           
           // Generate new insights
-          const result = await generateInsights(profile || null, history || []);
+          const result = await aiService.generateInsights(profile || null, history || []);
           
           // Save back to Firestore
           await userRef.set({
@@ -78,21 +88,17 @@ router.post('/insights', aiLimiter, async (req, res) => {
     }
 
     // Fallback if no uid or db error
-    const result = await generateInsights(profile || null, history || []);
+    const result = await aiService.generateInsights(profile || null, history || []);
     await insightsCache.set(cacheKey, result);
     res.set('Cache-Control', 'private, max-age=3600');
     res.json(result);
 
   } catch (error: unknown) {
     logger.error(`[API Error] Gemini insights generation failed: ${error instanceof Error ? error.message : String(error)}`);
-    res.json([
-      "🚴 Biking 3 days/week saves 1k lbs CO2",
-      "💡 LED bulbs use 75% less energy",
-      "🥦 1 plant-based meal saves 2k gal water",
-      "🔌 Unplug to prevent phantom drain",
-      "👕 Wash cold to save 90% energy",
-      "🛍️ Reusable bags save plastic"
-    ]);
+    const todayStr = new Date().toISOString().split('T')[0];
+    const cacheKey = `insights_${req.user?.uid || 'anon'}_${todayStr}`;
+    await insightsCache.set(cacheKey, fallbackInsights, 300000); // 5 minutes TTL
+    res.json(fallbackInsights);
   }
 });
 
@@ -105,7 +111,7 @@ router.post('/log', aiLimiter, async (req, res) => {
 
     const { userMessage, profile, history, imageBase64 } = parseResult.data;
 
-    const result = await generateActivityLog({ userMessage, profile, history, imageBase64 });
+    const result = await aiService.generateActivityLog({ userMessage, profile, history, imageBase64 });
 
     if (result.activities) {
       result.activities = result.activities.map(act => ({
@@ -142,16 +148,9 @@ router.post('/log', aiLimiter, async (req, res) => {
               currentDailyPoints = logSnap.data()!.totalPoints || 0;
             } else {
               // Logic for new day streak calculation
-              if (lastLoggedDate) {
-                 const lastDate = new Date(lastLoggedDate);
-                 const todayDate = new Date(today);
-                 const diffDays = Math.ceil(Math.abs(todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
-                 if (diffDays === 1) streak += 1;
-                 else if (diffDays > 1) streak = 1;
-              } else {
-                streak = 1;
-              }
-              lastLoggedDate = today;
+              const streakResult = calculateStreak(streak, lastLoggedDate, today);
+              streak = streakResult.streak;
+              lastLoggedDate = streakResult.lastLoggedDate;
             }
             
             // Write to Subcollection

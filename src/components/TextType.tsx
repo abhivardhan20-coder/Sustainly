@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef, useState, createElement, useMemo, useCallback } from 'react';
-import { gsap } from 'gsap';
 import './TextType.css';
 
 interface TextTypeProps {
@@ -87,14 +86,7 @@ const TextType: React.FC<TextTypeProps> = ({
 
   useEffect(() => {
     if (showCursor && cursorRef.current) {
-      gsap.set(cursorRef.current, { opacity: 1 });
-      gsap.to(cursorRef.current, {
-        opacity: 0,
-        duration: cursorBlinkDuration,
-        repeat: -1,
-        yoyo: true,
-        ease: 'power2.inOut'
-      });
+      cursorRef.current.style.animation = `blink ${cursorBlinkDuration * 2}s infinite`;
     }
   }, [showCursor, cursorBlinkDuration]);
 

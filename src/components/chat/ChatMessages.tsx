@@ -1,14 +1,16 @@
 import React from 'react';
-import { ChatMessage } from '../../store/useSustainlyStore';
+import { ChatMessage } from '../../types';
 import DOMPurify from 'dompurify';
 
 interface Props {
   messages: ChatMessage[];
   loading: boolean;
+  loadingStep?: number;
   chatEndRef: React.RefObject<HTMLDivElement>;
 }
 
-export default function ChatMessages({ messages, loading, chatEndRef }: Props) {
+export default function ChatMessages({ messages, loading, loadingStep = 0, chatEndRef }: Props) {
+  const stepText = ["Analyzing impact...", "Calculating carbon footprint...", "Saving to garden..."][loadingStep];
   return (
     <div role="log" aria-live="polite" aria-label="Conversation history" className="flex flex-col gap-4">
       {messages.map((m) => (
@@ -34,7 +36,8 @@ export default function ChatMessages({ messages, loading, chatEndRef }: Props) {
              <div className="w-2 h-2 rounded-full bg-soft-sage motion-safe:animate-bounce [animation-delay:0ms]" aria-hidden="true"></div>
              <div className="w-2 h-2 rounded-full bg-soft-sage motion-safe:animate-bounce [animation-delay:150ms]" aria-hidden="true"></div>
              <div className="w-2 h-2 rounded-full bg-soft-sage motion-safe:animate-bounce [animation-delay:300ms]" aria-hidden="true"></div>
-             <span className="sr-only">Sustainly is processing your message</span>
+             <span className="text-sm font-medium text-on-surface-variant ml-2">{stepText}</span>
+             <span className="sr-only">{stepText}</span>
            </div>
         </div>
       )}

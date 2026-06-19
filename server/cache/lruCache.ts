@@ -14,8 +14,12 @@ export const insightsCache = {
     return memoryCache.get(key) || null;
   },
   
-  set: async (key: string, value: any): Promise<void> => {
-    memoryCache.set(key, value);
+  set: async (key: string, value: any, customTtl?: number): Promise<void> => {
+    if (customTtl) {
+      memoryCache.set(key, value, { ttl: customTtl });
+    } else {
+      memoryCache.set(key, value);
+    }
   },
   
   clear: () => {

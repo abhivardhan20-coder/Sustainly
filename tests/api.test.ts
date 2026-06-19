@@ -1,16 +1,18 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../server';
-import { generateInsights, generateActivityLog } from '../server/services/geminiService';
+import { aiService } from '../server/services/geminiService';
 
 // Mock the Gemini service functions
 vi.mock('../server/services/geminiService', () => ({
-  generateInsights: vi.fn().mockResolvedValue(['Mock tip 1', 'Mock tip 2']),
-  generateActivityLog: vi.fn().mockResolvedValue({
-    activities: [{ id: '1', type: 'transport', description: 'Mock', points: 10, icon: 'bike' }],
-    message: 'Great job!',
-    suggestedAction: { title: 'Mock Action', description: 'Mock', btnText: 'Do it' }
-  })
+  aiService: {
+    generateInsights: vi.fn().mockResolvedValue(['Mock tip 1', 'Mock tip 2']),
+    generateActivityLog: vi.fn().mockResolvedValue({
+      activities: [{ id: '1', type: 'transport', description: 'Mock', points: 10, icon: 'bike' }],
+      message: 'Great job!',
+      suggestedAction: { title: 'Mock Action', description: 'Mock', btnText: 'Do it' }
+    })
+  }
 }));
 
 vi.mock('firebase-admin/app', () => ({
@@ -54,7 +56,7 @@ describe('AI API Endpoints (Integration Style)', () => {
   });
 
   it('POST /api/insights - should return insights', async () => {
-    (generateInsights as any).mockResolvedValue([
+    vi.spyOn(aiService, 'generateInsights').mockResolvedValueOnce([
       "🚴 Biking saves CO2",
       "🥦 Plant-based meals help"
     ]);
@@ -73,7 +75,7 @@ describe('AI API Endpoints (Integration Style)', () => {
   });
 
   it('POST /api/log - should return structured activity log', async () => {
-    (generateActivityLog as any).mockResolvedValue({
+    vi.spyOn(aiService, 'generateActivityLog').mockResolvedValueOnce({
       activities: [
         {
           id: 'act1',

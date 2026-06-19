@@ -1,158 +1,37 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { UserProfile, DailyLog, GardenState, RecommendedAction } from '../types';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
+import { debouncedSync } from '../utils/syncQueue';
 
-const syncToFirestore = async (state: SustainlyStore) => {
-  try {
-    const user = auth.currentUser;
-    if (!user) return;
-    const ref = doc(db, 'users', user.uid);
-    await setDoc(ref, {
-      profile: state.profile,
-      dailyLogs: state.dailyLogs,
-      garden: state.garden,
-      streak: state.streak,
-      lastLoggedDate: state.lastLoggedDate,
-    }, { merge: true });
-    } catch (error) {
-      console.error("Failed to sync state to Firestore:", error);
-    }
-  };
+import { createProfileSlice, ProfileSlice } from './slices/profileSlice';
+import { createGardenSlice, GardenSlice } from './slices/gardenSlice';
+import { createLogSlice, LogSlice } from './slices/logSlice';
+import { createChatSlice, ChatSlice } from './slices/chatSlice';
 
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'ai';
-  content: string;
-}
-
-const pruneOldLogs = (logs: Record<string, DailyLog>): Record<string, DailyLog> => {
-  const ninetyDaysAgo = new Date();
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-  const cutoffDate = ninetyDaysAgo.toISOString().split('T')[0];
-  
-  const pruned: Record<string, DailyLog> = {};
-  for (const [date, log] of Object.entries(logs)) {
-    if (date >= cutoffDate) {
-      pruned[date] = log;
-    }
-  }
-  return pruned;
-};
-
-interface SustainlyStore {
-  profile: UserProfile | null;
-  dailyLogs: Record<string, DailyLog>; 
-  garden: GardenState;
-  todaysActions: RecommendedAction[];
-  streak: number;
-  lastLoggedDate: string | null;
-  messages: ChatMessage[];
-  theme: 'light' | 'dark';
-
-  setProfile: (profile: UserProfile) => void;
-  addLog: (log: DailyLog) => void;
-  updateGarden: (updates: Partial<GardenState>) => void;
-  setSuggestedAction: (action: RecommendedAction) => void;
-  completeAction: (actionId: string) => void;
-  setMessages: (updater: (prev: ChatMessage[]) => ChatMessage[]) => void;
-  setTheme: (theme: 'light' | 'dark') => void;
+export type SustainlyStore = ProfileSlice & GardenSlice & LogSlice & ChatSlice & {
+  sync: () => void;
   resetAllData: () => void;
-  clearActivityLogs: () => void;
   loadFromFirestore: () => Promise<void>;
-}
+};
 
 export const useSustainlyStore = create<SustainlyStore>()(
   persist(
-    (set, get) => ({
-      profile: null,
-      dailyLogs: {},
-      garden: {
-        trees: 0,
-        flowers: 0,
-        lastGrown: new Date().toISOString(),
-      },
-      todaysActions: [],
-      streak: 0,
-      lastLoggedDate: null,
-      messages: [],
-      theme: 'light',
+    (set, get, api) => ({
+      ...createProfileSlice(set, get, api),
+      ...createGardenSlice(set, get, api),
+      ...createLogSlice(set, get, api),
+      ...createChatSlice(set, get, api),
 
-      setProfile: (profile) => {
-        set({ profile });
-        syncToFirestore(get());
-      },
-      
-      addLog: (log) => {
-        set((state) => {
-          const existingLog = state.dailyLogs[log.date];
-          const newActivities = existingLog ? [...existingLog.activities, ...log.activities] : log.activities;
-          const totalPoints = existingLog ? existingLog.totalPoints + log.totalPoints : log.totalPoints;
-
-          let streak = state.streak;
-          let lastLoggedDate = state.lastLoggedDate;
-
-          if (!existingLog) {
-            if (lastLoggedDate) {
-              const lastDate = new Date(lastLoggedDate);
-              const logDate = new Date(log.date);
-              const diffTime = Math.abs(logDate.getTime() - lastDate.getTime());
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              if (diffDays === 1) {
-                streak += 1;
-              } else if (diffDays > 1) {
-                streak = 1;
-              }
-            } else {
-              streak = 1;
-            }
-            lastLoggedDate = log.date;
-          }
-
-          const updatedLogs = {
-            ...state.dailyLogs,
-            [log.date]: {
-              date: log.date,
-              activities: newActivities,
-              totalPoints
-            }
-          };
-
-          const allTotalPoints = Object.values(updatedLogs).reduce((sum, l) => sum + l.totalPoints, 0);
-
-          return {
-            dailyLogs: pruneOldLogs(updatedLogs),
-            garden: {
-              ...state.garden,
-              trees: Math.floor(allTotalPoints / 50),
-            },
-            streak,
-            lastLoggedDate
-          };
+      sync: () => {
+        debouncedSync({
+          profile: get().profile,
+          dailyLogs: get().dailyLogs,
+          garden: get().garden,
+          streak: get().streak,
+          lastLoggedDate: get().lastLoggedDate,
         });
-        syncToFirestore(get());
       },
-
-      updateGarden: (updates) => set((state) => ({
-        garden: { ...state.garden, ...updates }
-      })),
-
-      setSuggestedAction: (action) => set((state) => ({
-        todaysActions: [action]
-      })),
-
-      completeAction: (actionId) => set((state) => ({
-        todaysActions: state.todaysActions.map(a => 
-          a.id === actionId ? { ...a, completed: true } : a
-        )
-      })),
-
-      setMessages: (updater) => set((state) => ({
-        messages: updater(state.messages)
-      })),
-
-      setTheme: (theme) => set({ theme }),
 
       resetAllData: () => set({
         profile: null,
@@ -164,14 +43,6 @@ export const useSustainlyStore = create<SustainlyStore>()(
         messages: []
       }),
 
-      clearActivityLogs: () => set({
-        dailyLogs: {},
-        garden: { trees: 0, flowers: 0, lastGrown: new Date().toISOString() },
-        todaysActions: [],
-        streak: 0,
-        lastLoggedDate: null,
-        messages: []
-      }),
       loadFromFirestore: async () => {
         const user = auth.currentUser;
         if (!user) return;

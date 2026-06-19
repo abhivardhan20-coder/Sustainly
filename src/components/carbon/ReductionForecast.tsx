@@ -2,6 +2,8 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import type { DailyLog } from '../../types';
 import { subDays, format, addDays } from 'date-fns';
 
+import GlassCard from '../GlassCard';
+
 interface ReductionForecastProps {
   dailyLogs: Record<string, DailyLog>;
 }
@@ -10,7 +12,7 @@ export default function ReductionForecast({ dailyLogs }: ReductionForecastProps)
   // Generate last 14 days and next 16 days
   const data = [];
   const today = new Date();
-  
+
   // Calculate average for regression
   let sumX = 0;
   let sumY = 0;
@@ -24,7 +26,7 @@ export default function ReductionForecast({ dailyLogs }: ReductionForecastProps)
     const dateStr = format(date, 'yyyy-MM-dd');
     const log = dailyLogs[dateStr];
     const points = log ? log.totalPoints : 0;
-    
+
     data.push({
       date: format(date, 'MMM dd'),
       actual: i <= 0 ? points : null,
@@ -66,10 +68,10 @@ export default function ReductionForecast({ dailyLogs }: ReductionForecastProps)
     const date = addDays(today, i);
     const x = i + 14;
     let projectedVal = intercept + slope * x;
-    
+
     // Don't let it go below 0 for display
     projectedVal = Math.max(0, projectedVal);
-    
+
     // Suggested is 20% better (higher points)
     const suggestedVal = projectedVal * 1.2;
 
@@ -84,17 +86,17 @@ export default function ReductionForecast({ dailyLogs }: ReductionForecastProps)
 
   if (validDays === 0) {
     return (
-      <div className="bg-surface-container-lowest rounded-2xl border border-surface-variant/50 p-6 flex flex-col items-center justify-center h-64 text-center">
+      <GlassCard className="p-6 flex flex-col items-center justify-center h-64 text-center">
         <h3 className="text-lg font-bold text-on-surface">30-Day Forecast</h3>
         <p className="text-sm text-on-surface-variant max-w-[200px] mt-2">
           Log activities for a few days to see your impact forecast.
         </p>
-      </div>
+      </GlassCard>
     );
   }
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-surface-variant/50 p-6 flex flex-col h-full w-full">
+    <GlassCard className="p-6 flex flex-col h-full w-full">
       <div className="flex justify-between items-end mb-6">
         <div>
           <h3 className="text-lg font-bold text-on-surface">30-Day Forecast</h3>
@@ -111,7 +113,7 @@ export default function ReductionForecast({ dailyLogs }: ReductionForecastProps)
           </div>
         </div>
       </div>
-      
+
       <div className="flex-1 min-h-[250px] w-full relative -ml-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -126,60 +128,60 @@ export default function ReductionForecast({ dailyLogs }: ReductionForecastProps)
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-surface-variant, #e1e3e0)" opacity={0.5} />
-            <XAxis 
-              dataKey="date" 
+            <XAxis
+              dataKey="date"
               tick={{ fontSize: 10, fill: 'var(--color-on-surface-variant, #434842)' }}
               tickMargin={10}
               axisLine={false}
               tickLine={false}
               minTickGap={20}
             />
-            <YAxis 
+            <YAxis
               tick={{ fontSize: 10, fill: 'var(--color-on-surface-variant, #434842)' }}
               axisLine={false}
               tickLine={false}
               tickMargin={10}
             />
-            <Tooltip 
-              contentStyle={{ 
-                borderRadius: '12px', 
-                border: '1px solid var(--color-surface-variant, #e1e3e0)', 
+            <Tooltip
+              contentStyle={{
+                borderRadius: '12px',
+                border: '1px solid var(--color-surface-variant, #e1e3e0)',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                 backgroundColor: 'var(--color-surface-container-lowest, #ffffff)',
                 color: 'var(--color-on-surface, #1a1c19)'
               }}
               labelStyle={{ color: 'var(--color-on-surface-variant, #434842)', fontWeight: 'bold', marginBottom: '4px' }}
             />
-            <Area 
-              type="monotone" 
-              dataKey="actual" 
-              stroke="var(--color-primary, #166534)" 
+            <Area
+              type="monotone"
+              dataKey="actual"
+              stroke="var(--color-primary, #166534)"
               strokeWidth={3}
-              fillOpacity={1} 
-              fill="url(#colorActual)" 
+              fillOpacity={1}
+              fill="url(#colorActual)"
               activeDot={{ r: 6, fill: "var(--color-primary, #166534)", stroke: "var(--color-surface, #f9f9f8)", strokeWidth: 2 }}
             />
-            <Area 
-              type="monotone" 
-              dataKey="projected" 
-              stroke="var(--color-primary, #166534)" 
+            <Area
+              type="monotone"
+              dataKey="projected"
+              stroke="var(--color-primary, #166534)"
               strokeWidth={3}
               strokeDasharray="5 5"
-              fillOpacity={0.5} 
-              fill="url(#colorActual)" 
+              fillOpacity={0.5}
+              fill="url(#colorActual)"
             />
-            <Area 
-              type="monotone" 
-              dataKey="suggested" 
-              stroke="var(--color-secondary, #006d36)" 
+            <Area
+              type="monotone"
+              dataKey="suggested"
+              stroke="var(--color-secondary, #006d36)"
               strokeWidth={2}
               strokeDasharray="3 3"
-              fillOpacity={1} 
-              fill="url(#colorSuggested)" 
+              fillOpacity={1}
+              fill="url(#colorSuggested)"
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </GlassCard>
   );
 }

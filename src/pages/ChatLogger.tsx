@@ -11,6 +11,7 @@ export default function ChatLogger() {
   const { profile, addLog, setSuggestedAction, completeAction, todaysActions, messages, setMessages } = useSustainlyStore();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [loggedResult, setLoggedResult] = useState<Record<string, any> | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -25,6 +26,17 @@ export default function ChatLogger() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loggedResult, loading, imageBase64]);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (loading) {
+      setLoadingStep(0);
+      interval = setInterval(() => {
+        setLoadingStep(prev => (prev + 1) % 3);
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleSend = async () => {
     if ((!input.trim() && !imageBase64) || loading) return;
@@ -200,7 +212,7 @@ export default function ChatLogger() {
         aria-label="Conversation with Sustainly AI"
         aria-busy={loading}
       >
-        <ChatMessages messages={messages} loading={loading} chatEndRef={chatEndRef} />
+        <ChatMessages messages={messages} loading={loading} loadingStep={loadingStep} chatEndRef={chatEndRef} />
         
         {!loading && (
           <ChatFeedback 

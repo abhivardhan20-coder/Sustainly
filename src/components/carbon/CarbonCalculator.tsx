@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Car, Utensils, Home, ShoppingBag, Leaf } from 'lucide-react';
-import BorderGlow from '../BorderGlow';
 import CountUp from '../CountUp';
+import GlassCard from '../GlassCard';
 import { EMISSION_FACTORS, DAILY_AVERAGE_CO2E, DAILY_TARGET_CO2E } from '../../utils/carbonConstants';
 
 export default function CarbonCalculator() {
@@ -35,7 +35,7 @@ export default function CarbonCalculator() {
   };
 
   return (
-    <BorderGlow backgroundColor="var(--color-surface-container-lowest)" borderRadius={12} className="w-full shadow-sm">
+    <GlassCard className="w-full">
       <div className="p-6">
         <div className="flex items-center gap-2 mb-6">
           <Leaf className="text-primary" size={24} />
@@ -51,8 +51,8 @@ export default function CarbonCalculator() {
                 </label>
                 <span className="text-sm font-bold text-primary">{transportKm} km</span>
               </div>
-              <input 
-                type="range" min="0" max="50" step="1" 
+              <input
+                type="range" min="0" max="50" step="1"
                 value={transportKm} onChange={(e) => setTransportKm(Number(e.target.value))}
                 className="w-full accent-primary"
                 aria-label="Car travel distance in kilometers"
@@ -66,15 +66,15 @@ export default function CarbonCalculator() {
                 </label>
                 <span className="text-sm font-bold text-tertiary">{foodMeals} meals</span>
               </div>
-              <input 
-                type="range" min="0" max="3" step="1" 
+              <input
+                type="range" min="0" max="3" step="1"
                 value={foodMeals} onChange={(e) => setFoodMeals(Number(e.target.value))}
                 className="w-full accent-tertiary"
                 aria-label="Number of meals"
               />
               <div className="flex gap-2 mt-2">
                 {(['meat_meal', 'fish_meal', 'vegetarian_meal', 'vegan_meal'] as const).map(type => (
-                  <button 
+                  <button
                     key={type}
                     onClick={() => setFoodType(type)}
                     className={`text-[10px] px-2 py-1 rounded-full font-bold transition-colors ${
@@ -94,8 +94,8 @@ export default function CarbonCalculator() {
                 </label>
                 <span className="text-sm font-bold text-secondary">{acHours} hrs</span>
               </div>
-              <input 
-                type="range" min="0" max="24" step="1" 
+              <input
+                type="range" min="0" max="24" step="1"
                 value={acHours} onChange={(e) => setAcHours(Number(e.target.value))}
                 className="w-full accent-secondary"
                 aria-label="Air conditioning usage in hours"
@@ -109,8 +109,8 @@ export default function CarbonCalculator() {
                 </label>
                 <span className="text-sm font-bold text-on-surface-variant">{shoppingItems} items</span>
               </div>
-              <input 
-                type="range" min="0" max="5" step="1" 
+              <input
+                type="range" min="0" max="5" step="1"
                 value={shoppingItems} onChange={(e) => setShoppingItems(Number(e.target.value))}
                 className="w-full accent-outline"
                 aria-label="Number of new items purchased"
@@ -126,7 +126,7 @@ export default function CarbonCalculator() {
             <p className="text-sm font-medium text-on-surface-variant max-w-[250px]">
               {getImpactMessage(totalCo2e)}
             </p>
-            
+
             <div className="w-full mt-8 space-y-2">
               <div className="flex justify-between text-xs text-on-surface-variant">
                 <span>Target: {DAILY_TARGET_CO2E}kg</span>
@@ -141,6 +141,6 @@ export default function CarbonCalculator() {
           </div>
         </div>
       </div>
-    </BorderGlow>
+    </GlassCard>
   );
 }

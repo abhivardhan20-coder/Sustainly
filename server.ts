@@ -6,10 +6,11 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import { join } from 'path';
 import apiRoutes from './server/routes/api';
 import carbonRoutes from './server/routes/carbon';
 import { logger } from './server/utils/logger';
+import cookieParser from 'cookie-parser';
+import { csrfTokenMiddleware } from './server/middleware/csrf';
 import "dotenv/config";
 
 export const app = express();
@@ -81,11 +82,11 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 app.use(express.json({ limit: '1mb' }));
-
 app.use(express.urlencoded({ limit: '1mb', extended: true }));
+app.use(cookieParser());
 
 // Mount modular API routes
-app.use('/api', apiRoutes);
+app.use('/api', csrfTokenMiddleware, apiRoutes);
 app.use('/api/carbon', carbonRoutes);
 
 // Vite middleware for development
