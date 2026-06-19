@@ -97,7 +97,7 @@ if (process.env.NODE_ENV !== "production") {
 // Separate start function for production/dev server
 export async function startServer() {
   if (!process.env.GEMINI_API_KEY) {
-    throw new Error("Missing required environment variables");
+    logger.error("Missing required environment variable: GEMINI_API_KEY. AI features will not work.");
   }
 
   if (process.env.NODE_ENV !== "production") {
@@ -119,8 +119,10 @@ export async function startServer() {
   });
 }
 
-// Auto-start only when run directly (not when imported for testing)
-const __isMain = process.argv[1] === fileURLToPath(import.meta.url);
-if (__isMain) {
-  startServer();
+// Auto-start unless imported for testing
+if (process.env.NODE_ENV !== 'test') {
+  startServer().catch(err => {
+    logger.error("Failed to start server:", err);
+    process.exit(1);
+  });
 }
