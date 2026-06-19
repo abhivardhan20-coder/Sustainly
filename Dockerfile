@@ -3,9 +3,13 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies first for better caching
+# Set environment variables to avoid unnecessary downloads during install
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+
+# Copy package files
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
@@ -22,7 +26,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install only production dependencies
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy the built assets from the builder stage
 COPY --from=builder /app/dist ./dist
