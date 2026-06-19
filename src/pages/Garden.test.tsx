@@ -7,7 +7,7 @@ import Garden from './Garden';
 import { useSustainlyStore } from '../store/useSustainlyStore';
 
 vi.mock('../store/useSustainlyStore', async () => {
-  const actual = await vi.importActual<any>('../store/useSustainlyStore');
+  const actual = await vi.importActual<unknown>('../store/useSustainlyStore');
   return {
     ...actual,
     useSustainlyStore: vi.fn(),

@@ -23,7 +23,7 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 vi.mock('../store/useSustainlyStore', async () => {
-  const actual = await vi.importActual<any>('../store/useSustainlyStore');
+  const actual = await vi.importActual<unknown>('../store/useSustainlyStore');
   const mockState = {
     profile: null,
     setProfile: vi.fn(),

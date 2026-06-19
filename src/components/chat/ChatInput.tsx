@@ -25,7 +25,7 @@ export default function ChatInput({
         <div className="max-w-3xl mx-auto mb-3 relative inline-block">
            <img 
              src={imageBase64} 
-             alt="Preview of uploaded photo for activity logging" 
+             alt="Uploaded content" 
              className="h-24 w-auto rounded-lg object-cover border border-surface-variant shadow-sm" 
            />
            <button 

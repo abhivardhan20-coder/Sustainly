@@ -29,8 +29,10 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://lh3.googleusercontent.com"], // Google avatars
-      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com"]
+      imgSrc: ["'self'", "data:", "blob:", "https://lh3.googleusercontent.com"], // Google avatars
+      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'self'"],
     }
   } : false, // Disable only in dev for Vite HMR
 }));

@@ -1,3 +1,4 @@
+/** @vitest-environment jsdom */
 // tests/integration/userJourney.test.ts
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
@@ -11,7 +12,7 @@ import React from 'react';
 // MSW server for API mocking
 const server = setupServer(
   http.post('/api/log', async ({ request }) => {
-    const body = await request.json() as any;
+    const body = await request.json() as unknown as Record<string, unknown>;
     return HttpResponse.json({
       success: true,
       data: {

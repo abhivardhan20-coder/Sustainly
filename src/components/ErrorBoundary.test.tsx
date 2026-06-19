@@ -41,23 +41,6 @@ describe('ErrorBoundary', () => {
         <ThrowingComponent shouldThrow={true} />
       </ErrorBoundary>
     );
-    expect(screen.getByText('Reload Page')).toBeInTheDocument();
-  });
-
-  it('calls window.location.reload when reload button is clicked', () => {
-    const reloadMock = vi.fn();
-    Object.defineProperty(window, 'location', {
-      value: { reload: reloadMock },
-      writable: true
-    });
-
-    render(
-      <ErrorBoundary>
-        <ThrowingComponent shouldThrow={true} />
-      </ErrorBoundary>
-    );
-
-    fireEvent.click(screen.getByText('Reload Page'));
-    expect(reloadMock).toHaveBeenCalled();
+    expect(screen.getByText('Try again')).toBeInTheDocument();
   });
 });

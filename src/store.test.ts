@@ -46,7 +46,7 @@ describe('Sustainly Store', () => {
         confidenceScore: 0.9 
       }],
       totalPoints: 10
-    } as any;
+    } as unknown as Record<string, unknown>;
     useSustainlyStore.getState().addLog(log);
     const logs = useSustainlyStore.getState().dailyLogs;
     expect(logs['2026-06-01']).toBeDefined();
@@ -62,7 +62,7 @@ describe('Sustainly Store', () => {
       date: '2026-06-02',
       activities: [],
       totalPoints: 5
-    } as any;
+    } as unknown as Record<string, unknown>;
     
     useSustainlyStore.getState().addLog(log);
     const streak = useSustainlyStore.getState().streak;
@@ -78,7 +78,7 @@ describe('Sustainly Store', () => {
       date: '2026-06-03',
       activities: [],
       totalPoints: 5
-    } as any;
+    } as unknown as Record<string, unknown>;
     
     useSustainlyStore.getState().addLog(log);
     const streak = useSustainlyStore.getState().streak;
@@ -87,7 +87,7 @@ describe('Sustainly Store', () => {
 
   it('should clear activity logs', () => {
     useSustainlyStore.setState({
-      dailyLogs: { '2026-06-01': { date: '2026-06-01', activities: [], totalPoints: 10 } } as any,
+      dailyLogs: { '2026-06-01': { date: '2026-06-01', activities: [], totalPoints: 10 } } as unknown as Record<string, unknown>,
       streak: 5,
       lastLoggedDate: '2026-06-01'
     });

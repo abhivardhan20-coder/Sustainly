@@ -35,3 +35,23 @@ jobs:
       env:
         GEMINI_API_KEY: test-key-for-ci
         NODE_ENV: test
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: test
+    env:
+      GEMINI_API_KEY: test-key-for-ci
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npm run build
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/

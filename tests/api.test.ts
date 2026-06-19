@@ -38,7 +38,7 @@ vi.mock('firebase-admin/firestore', () => {
   return {
     getFirestore: vi.fn().mockReturnValue({
       collection: vi.fn().mockReturnValue(mockCollection),
-      runTransaction: vi.fn().mockImplementation(async (fn: any) => {
+      runTransaction: vi.fn().mockImplementation(async (fn: unknown) => {
         const t = {
           get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ streak: 1, lastLoggedDate: null }) }),
           set: vi.fn()

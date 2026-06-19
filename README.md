@@ -95,9 +95,6 @@ graph TB
 
 ## Future Improvements
 * Streaming AI responses for real-time chat experience
-* CORS policy enforcement for production deployment
-* Image MIME type allowlisting (JPEG, PNG, WebP, GIF only)
-* Focus trap implementation on modal dialogs (WCAG 2.1 compliance)
 * Leaderboards and social features
 * Integration with real carbon tracking APIs or IoT devices
 * Push notifications for streak reminders

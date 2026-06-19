@@ -12,7 +12,7 @@ beforeAll(() => {
 
 // Mock store
 vi.mock('../store/useSustainlyStore', async () => {
-  const actual = await vi.importActual<any>('../store/useSustainlyStore');
+  const actual = await vi.importActual<unknown>('../store/useSustainlyStore');
   const mockState = {
     profile: { name: 'Test', diet: 'vegan', primaryCommute: ['bike'] },
     addLog: vi.fn(),

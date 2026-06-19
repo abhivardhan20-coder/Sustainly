@@ -44,7 +44,6 @@ export const AccessibleChat: React.FC<AccessibleChatProps> = ({
     <section 
       className="chat-container" 
       aria-label="Chat interface for logging activities"
-      role="region"
     >
       <div 
         className="messages-list" 
