@@ -51,13 +51,13 @@ export default function ChatLogger() {
       const recentHistory = messages.slice(-20);
       const token = auth.currentUser 
         ? await auth.currentUser.getIdToken() 
-        : (typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__ ? 'test-token' : '');
+        : (typeof window !== 'undefined' && window.__E2E_AUTH_MOCK__ ? 'test-token' : '');
       const response = await fetch('/api/log', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          ...(typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__ && { 'X-E2E-Mock': 'true' })
+          ...(typeof window !== 'undefined' && window.__E2E_AUTH_MOCK__ && { 'X-E2E-Mock': 'true' })
         },
         body: JSON.stringify({
           userMessage: userMsg,
@@ -119,16 +119,15 @@ export default function ChatLogger() {
   };
 
   const handleVoice = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) {
       alert("Voice input is not supported in this browser.");
       return;
     }
     
     if (isRecording) return;
   
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionCtor();
     recognition.lang = 'en-US';
     recognition.continuous = false;
     recognition.interimResults = false;

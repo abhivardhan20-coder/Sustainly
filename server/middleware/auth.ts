@@ -26,7 +26,8 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
   const token = authHeader.split('Bearer ')[1];
   
-  if (token === 'test-token' || process.env.NODE_ENV === 'test') {
+  // E2E mock bypass: only active when E2E_MOCK_AUTH is explicitly set AND the token matches exactly
+  if (process.env.E2E_MOCK_AUTH === 'true' && token === 'test-token') {
     req.user = { uid: 'test-user-id', email: 'test@example.com' } as unknown as DecodedIdToken;
     return next();
   }

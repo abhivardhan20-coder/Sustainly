@@ -64,13 +64,13 @@ export default function Dashboard() {
       try {
         const token = auth.currentUser 
           ? await auth.currentUser.getIdToken() 
-          : (typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__ ? 'test-token' : undefined);
+          : (typeof window !== 'undefined' && window.__E2E_AUTH_MOCK__ ? 'test-token' : undefined);
         const res = await fetch('/api/insights', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             ...(token && { 'Authorization': `Bearer ${token}` }),
-            ...(typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__ && { 'X-E2E-Mock': 'true' })
+            ...(typeof window !== 'undefined' && window.__E2E_AUTH_MOCK__ && { 'X-E2E-Mock': 'true' })
           },
           body: JSON.stringify({
             profile: store.profile,

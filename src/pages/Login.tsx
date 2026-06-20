@@ -15,7 +15,7 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      if (typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__) {
+      if (typeof window !== 'undefined' && window.__E2E_AUTH_MOCK__) {
         navigate('/onboarding', { state: { name: 'Test User' } });
         return;
       }

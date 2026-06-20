@@ -23,8 +23,9 @@ window.fetch = async (input, init) => {
     } else if (Array.isArray(headers)) {
       headers.push(['X-CSRF-Token', csrfToken]);
     } else {
-      (headers as any)['X-CSRF-Token'] = csrfToken;
-      init.headers = headers;
+      const headerRecord = headers as Record<string, string>;
+      headerRecord['X-CSRF-Token'] = csrfToken;
+      init.headers = headerRecord;
     }
   }
   return originalFetch(input, init);
