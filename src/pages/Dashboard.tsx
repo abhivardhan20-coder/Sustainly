@@ -83,7 +83,7 @@ export default function Dashboard() {
         } else {
           setInsights(FALLBACK_INSIGHTS);
         }
-      } catch (e) {
+      } catch {
         setInsights(FALLBACK_INSIGHTS);
       } finally {
         setLoadingInsights(false);

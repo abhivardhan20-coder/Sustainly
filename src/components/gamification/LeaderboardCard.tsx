@@ -1,5 +1,5 @@
 import { Trophy, Medal, ArrowUp, ArrowDown, Minus } from 'lucide-react';
-import CountUp from '../CountUp';
+
 
 // Mock data since we don't have a real backend for this
 const MOCK_LEADERBOARD = [

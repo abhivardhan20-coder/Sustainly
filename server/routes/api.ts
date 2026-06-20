@@ -1,20 +1,20 @@
 import express from 'express';
 import { requireAuth } from '../middleware/auth';
 import { logRequestSchema, insightsRequestSchema } from '../validators/apiValidators';
-import { insightsCache, generateCacheKey } from '../cache/lruCache';
+import { insightsCache } from '../cache/lruCache';
 import { aiService } from '../services/geminiService';
 import { getFirestore } from 'firebase-admin/firestore';
 import { logger } from '../utils/logger';
 import { fallbackInsights } from '../utils/fallbackInsights';
 import { calculateStreak } from '../../src/utils/streak';
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import rateLimit from "express-rate-limit";
 
 const router = express.Router();
 
 const aiLimiter = rateLimit({
   windowMs: 60000,
   max: 5,
-  keyGenerator: (req, res) => {
+  keyGenerator: (req, _res) => {
     // If we have a user UID, use that (so that the same user gets the same limit across IPs)
     if (req.user?.uid) {
       return req.user.uid;
@@ -22,7 +22,7 @@ const aiLimiter = rateLimit({
     // Otherwise, use IP address
     return req.ip || 'unknown';
   },
-  handler: (req, res, next, options) => {
+  handler: (req, res, _next, _options) => {
     const safeIp = req.ip ? req.ip.replace(/\.\d+$/, '.xxx') : 'unknown';
     logger.warn(`[Abuse Protection] AI rate limit exceeded! UID: ${req.user?.uid || 'none'} IP: ${safeIp} path: ${req.originalUrl}`);
     res.status(429).json({ error: "Too many AI generation requests. Please try again later." });

@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { User, LogOut, Trash2, Download, Upload, Moon, Sun, Monitor } from 'lucide-react';
+import { LogOut, Trash2, Download, Upload, Moon, Sun } from 'lucide-react';
 import { useSustainlyStore } from '../store/useSustainlyStore';
 import { getAuth, signOut } from 'firebase/auth';
 import { z } from 'zod';
 import BorderGlow from '../components/BorderGlow';
 import ConfirmModal from '../components/ConfirmModal';
-import { formatPercentage } from '../utils/formatters';
+
 
 const importSchema = z.object({
   profile: z.object({
@@ -99,7 +99,7 @@ export default function Profile() {
         });
         
         setImportError('');
-      } catch (error) {
+      } catch {
         setImportError('Invalid backup file format');
       }
     };

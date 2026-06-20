@@ -14,7 +14,7 @@ export default function Onboarding() {
   const [environment, setEnvironment] = useState(profile?.city || 'urban');
   const [diet, setDiet] = useState<'everything' | 'pescatarian' | 'vegetarian' | 'vegan'>(profile?.diet || 'everything');
   const [commute, setCommute] = useState<string[]>(profile?.primaryCommute || []);
-  const [energy, setEnergy] = useState<'track' | 'could-better' | 'not-really'>(profile?.homeACUsage || 'could-better');
+  const [energy] = useState<'track' | 'could-better' | 'not-really'>(profile?.homeACUsage || 'could-better');
 
   const isEditing = !!profile;
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSustainlyStore } from '../store/useSustainlyStore';
-import type { DailyLog, LoggedActivity } from '../types';
+import type { LoggedActivity } from '../types';
 import { subDays, format } from 'date-fns';
 
 interface CategoryBreakdown {

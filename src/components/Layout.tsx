@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, Trees, List, User, Plus, Flame, Calendar, BookOpen } from 'lucide-react';
+import { Home, Trees, Plus, Flame, Calendar, BookOpen } from 'lucide-react';
 import { useSustainlyStore } from '../store/useSustainlyStore';
 import NotificationsPanel from './NotificationsPanel';
 

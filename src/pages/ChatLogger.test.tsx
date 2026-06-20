@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ChatLogger from './ChatLogger';
-import { useSustainlyStore } from '../store/useSustainlyStore';
+
 
 beforeAll(() => {
   window.HTMLElement.prototype.scrollIntoView = vi.fn();

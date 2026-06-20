@@ -66,7 +66,7 @@ export function useGeminiStream(options: UseGeminiStreamOptions = {}) {
                 if (chunk.type === 'error') {
                   throw new Error(chunk.content);
                 }
-              } catch (parseError) {
+              } catch {
                 // Handle JSON parse errors gracefully
                 console.warn('Failed to parse chunk:', line);
               }

@@ -78,7 +78,7 @@ export const createLogSlice: StateCreator<
     get().sync();
   },
 
-  setSuggestedAction: (action) => set((state) => ({
+  setSuggestedAction: (action) => set((_state) => ({
     todaysActions: [action]
   })),
 

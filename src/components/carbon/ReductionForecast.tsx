@@ -1,6 +1,6 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import type { DailyLog } from '../../types';
-import { subDays, format, addDays } from 'date-fns';
+import { format, addDays } from 'date-fns';
 
 import GlassCard from '../GlassCard';
 

@@ -6,7 +6,7 @@ import BorderGlow from '../components/BorderGlow';
 import CountUp from '../components/CountUp';
 
 export default function Garden() {
-  const { garden, profile, streak, dailyLogs } = useSustainlyStore();
+  const { garden, streak, dailyLogs } = useSustainlyStore();
   const navigate = useNavigate();
 
   const allActivities = Object.values(dailyLogs).flatMap(log => log.activities);

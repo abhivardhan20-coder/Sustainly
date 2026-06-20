@@ -12,7 +12,7 @@ export const createGardenSlice: StateCreator<
   [],
   [],
   GardenSlice
-> = (set, get) => ({
+> = (set, _get) => ({
   garden: {
     trees: 0,
     flowers: 0,

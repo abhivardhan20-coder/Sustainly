@@ -3,10 +3,8 @@ import type { DailyLog } from '../types';
 
 import GlassCard from './GlassCard';
 
-export default function Heatmap({ logs, days = 365 }: { logs: Record<string, DailyLog>, days?: number }) {
+export default function Heatmap({ logs, days: _days = 365 }: { logs: Record<string, DailyLog>, days?: number }) {
   const today = new Date();
-  const oneYearAgo = subDays(today, 365);
-
   const dayLogs: { [date: string]: number } = {};
 
   Object.keys(logs).forEach(date => {

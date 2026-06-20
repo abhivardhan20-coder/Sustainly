@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, createElement, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import './TextType.css';
 
 interface TextTypeProps {

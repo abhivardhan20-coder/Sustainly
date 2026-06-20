@@ -9,7 +9,7 @@ if (!getApps().length) {
     try {
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
       initializeApp({ credential: cert(serviceAccount) });
-    } catch (e) {
+    } catch {
       logger.error("[FATAL] FIREBASE_SERVICE_ACCOUNT is not valid JSON.");
       process.exit(1);
     }

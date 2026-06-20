@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, Filter, ChevronLeft, ChevronRight, Star, ExternalLink, CheckCircle, Circle, Leaf } from 'lucide-react';
+import { BookOpen, Filter, ChevronLeft, ChevronRight, ExternalLink, CheckCircle, Circle, Leaf } from 'lucide-react';
 
 const ECO_TIPS = [
   {
