@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { User, LogOut, Trash2, Download, Upload, Moon, Sun, Monitor } from 'lucide-react';
 import { useSustainlyStore } from '../store/useSustainlyStore';
 import { getAuth, signOut } from 'firebase/auth';
@@ -41,6 +41,7 @@ const importSchema = z.object({
 
 export default function Profile() {
   const store = useSustainlyStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [importError, setImportError] = useState('');
@@ -250,23 +251,28 @@ export default function Profile() {
               </div>
             </button>
             
-            <label className="w-full flex items-center justify-between p-4 hover:bg-surface-container transition-colors rounded-xl cursor-pointer">
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center justify-between p-4 hover:bg-surface-container transition-colors rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-tertiary-container text-on-tertiary-container rounded-lg">
                   <Upload size={20} />
                 </div>
-                <div className="text-left">
+                <div>
                   <h4 className="font-semibold text-on-surface text-sm">Import Data</h4>
                   <p className="text-xs text-on-surface-variant">Restore from JSON backup</p>
                 </div>
               </div>
-              <input 
-                type="file" 
-                accept=".json" 
-                onChange={handleImport} 
-                className="hidden" 
-              />
-            </label>
+            </button>
+            <input 
+              ref={fileInputRef}
+              type="file" 
+              accept=".json" 
+              onChange={handleImport} 
+              className="hidden" 
+              aria-label="Import backup file"
+            />
 
             <button 
               onClick={() => setShowClearModal(true)}

@@ -30,6 +30,7 @@ export const logRequestSchema = z.object({
       return mimeMatch && ALLOWED_MIME.includes(mimeMatch[1]);
     }, 'Must be a base64 data URI with allowed image type (jpeg, png, webp, gif)')
     .optional()
+    .nullable()
 }).refine(data => data.userMessage || data.imageBase64, {
   message: "Either userMessage or imageBase64 must be provided"
 });

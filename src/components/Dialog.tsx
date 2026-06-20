@@ -58,16 +58,25 @@ export function Dialog({ isOpen, onClose, title, children, className = '' }: Dia
   if (!isOpen) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="dialog-title"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        role="button"
+        tabIndex={-1}
+        aria-label="Close dialog"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            onClose();
+          }
+        }}
+      />
       <div
         ref={dialogRef}
-        className={`max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800 ${className}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+        className={`relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800 ${className}`}
         tabIndex={-1}
       >
         <div className="flex items-center justify-between">

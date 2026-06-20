@@ -5,6 +5,11 @@ test.describe('Main User Journey', () => {
   // We simulate being authenticated by manipulating the local storage/store or mocking API
   
   test.beforeEach(async ({ page }) => {
+    // Set E2E auth mock flag before page load
+    await page.addInitScript(() => {
+      (window as unknown as { __E2E_AUTH_MOCK__?: boolean }).__E2E_AUTH_MOCK__ = true;
+    });
+
     // Navigate to the app
     await page.goto('/');
     
@@ -42,7 +47,7 @@ test.describe('Main User Journey', () => {
 
     // We should be redirected to dashboard automatically
     await expect(page).toHaveURL(/.*\/dashboard/);
-    await expect(page.locator('h1')).toContainText('Welcome back, Test');
+    await expect(page.locator('h1.text-3xl')).toContainText('Welcome back, Test');
 
     // Navigate to Log Activity
     await page.click('text=Log');
@@ -60,6 +65,6 @@ test.describe('Main User Journey', () => {
     // Navigate to Garden
     await page.click('text=Garden');
     await expect(page).toHaveURL(/.*\/garden/);
-    await expect(page.locator('text=Your Eco-Garden')).toBeVisible();
+    await expect(page.locator('text=Your Impact Garden')).toBeVisible();
   });
 });

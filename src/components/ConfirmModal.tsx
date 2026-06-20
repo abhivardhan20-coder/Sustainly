@@ -38,16 +38,21 @@ export default function ConfirmModal({
 
   return (
     <FocusTrap active={isOpen}>
-      <div 
-        className="fixed inset-0 bg-surface/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" 
-        role="dialog" 
-        aria-modal="true" 
-        aria-labelledby={titleId}
-        onClick={onClose}
-      >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <button
+          type="button"
+          className="fixed inset-0 bg-surface/80 backdrop-blur-sm focus:outline-none w-full h-full border-none cursor-default"
+          onClick={onClose}
+          aria-label="Close dialog"
+          tabIndex={-1}
+        />
+        {/* Dialog Content */}
         <div 
-          className="bg-surface-container-lowest rounded-2xl p-6 max-w-sm w-full shadow-lg border border-surface-variant/40"
-          onClick={e => e.stopPropagation()}
+          className="bg-surface-container-lowest rounded-2xl p-6 max-w-sm w-full shadow-lg border border-surface-variant/40 relative z-10"
+          role="dialog" 
+          aria-modal="true" 
+          aria-labelledby={titleId}
         >
           <h3 id={titleId} className="text-xl font-bold text-on-surface mb-2">{title}</h3>
           <p className="text-on-surface-variant text-sm mb-6">

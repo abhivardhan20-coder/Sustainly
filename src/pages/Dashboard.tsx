@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Sparkles, X, ChevronRight, TrendingUp, Leaf as Seedling, Flame, Zap, Award, Trees, Globe } from 'lucide-react';
 import { useSustainlyStore } from '../store/useSustainlyStore';
 import { auth } from '../lib/firebase';
@@ -36,6 +36,9 @@ const FALLBACK_INSIGHTS = [
   "Turning your thermostat down by 2°F in winter saves 5% on heating."
 ];
 
+// Expiration date for the mock challenge
+const MOCK_CHALLENGE_EXPIRES_AT = new Date(Date.now() + 7 * 86400000).toISOString();
+
 export default function Dashboard() {
   const store = useSustainlyStore();
   const metrics = useCarbonMetrics();
@@ -45,26 +48,29 @@ export default function Dashboard() {
   const [showInsightsModal, setShowInsightsModal] = useState(false);
 
   // Mock challenge data
-  const challenge: Challenge = {
+  const challenge: Challenge = useMemo(() => ({
     id: 'ch-1',
     title: 'Meatless Week',
     description: 'Log 5 vegetarian or vegan meals this week.',
     category: 'food',
     targetCount: 5,
     currentCount: metrics.categoryBreakdown.food > 0 ? 1 : 0, // Mock progress
-    expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+    expiresAt: MOCK_CHALLENGE_EXPIRES_AT,
     completed: false
-  };
+  }), [metrics.categoryBreakdown.food]);
 
   useEffect(() => {
     async function fetchInsights() {
       try {
-        const token = await auth.currentUser?.getIdToken();
+        const token = auth.currentUser 
+          ? await auth.currentUser.getIdToken() 
+          : (typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__ ? 'test-token' : undefined);
         const res = await fetch('/api/insights', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+            ...(typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__ && { 'X-E2E-Mock': 'true' })
           },
           body: JSON.stringify({
             profile: store.profile,
@@ -187,16 +193,24 @@ export default function Dashboard() {
       {/* Insights Modal */}
       {showInsightsModal && (
         <FocusTrap active={showInsightsModal}>
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface/80 backdrop-blur-sm"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="insights-title"
-            onClick={() => setShowInsightsModal(false)}
-          >
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
-              className="bg-surface-container-lowest border border-surface-variant rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-lg"
-              onClick={e => e.stopPropagation()}
+              role="button"
+              tabIndex={-1}
+              aria-label="Close modal"
+              className="fixed inset-0 bg-surface/80 backdrop-blur-sm"
+              onClick={() => setShowInsightsModal(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  setShowInsightsModal(false);
+                }
+              }}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="insights-title"
+              className="relative z-10 bg-surface-container-lowest border border-surface-variant rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-lg"
             >
               <div className="p-4 border-b border-surface-variant flex justify-between items-center bg-surface-container-low/50 rounded-t-2xl">
                 <div className="flex items-center gap-2">

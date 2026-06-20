@@ -46,12 +46,13 @@ export default function CarbonCalculator() {
           <div className="space-y-6">
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm font-semibold flex items-center gap-2 text-on-surface">
+                <label htmlFor="carbon-transport-km" className="text-sm font-semibold flex items-center gap-2 text-on-surface">
                   <Car size={16} className="text-primary" /> Car Travel
                 </label>
                 <span className="text-sm font-bold text-primary">{transportKm} km</span>
               </div>
               <input
+                id="carbon-transport-km"
                 type="range" min="0" max="50" step="1"
                 value={transportKm} onChange={(e) => setTransportKm(Number(e.target.value))}
                 className="w-full accent-primary"
@@ -61,12 +62,13 @@ export default function CarbonCalculator() {
 
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm font-semibold flex items-center gap-2 text-on-surface">
+                <label htmlFor="carbon-food-meals" className="text-sm font-semibold flex items-center gap-2 text-on-surface">
                   <Utensils size={16} className="text-tertiary" /> Meals
                 </label>
                 <span className="text-sm font-bold text-tertiary">{foodMeals} meals</span>
               </div>
               <input
+                id="carbon-food-meals"
                 type="range" min="0" max="3" step="1"
                 value={foodMeals} onChange={(e) => setFoodMeals(Number(e.target.value))}
                 className="w-full accent-tertiary"
@@ -89,12 +91,13 @@ export default function CarbonCalculator() {
 
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm font-semibold flex items-center gap-2 text-on-surface">
+                <label htmlFor="carbon-ac-hours" className="text-sm font-semibold flex items-center gap-2 text-on-surface">
                   <Home size={16} className="text-secondary" /> AC Usage
                 </label>
                 <span className="text-sm font-bold text-secondary">{acHours} hrs</span>
               </div>
               <input
+                id="carbon-ac-hours"
                 type="range" min="0" max="24" step="1"
                 value={acHours} onChange={(e) => setAcHours(Number(e.target.value))}
                 className="w-full accent-secondary"
@@ -104,12 +107,13 @@ export default function CarbonCalculator() {
 
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm font-semibold flex items-center gap-2 text-on-surface">
+                <label htmlFor="carbon-shopping-items" className="text-sm font-semibold flex items-center gap-2 text-on-surface">
                   <ShoppingBag size={16} className="text-on-surface-variant" /> New Items
                 </label>
                 <span className="text-sm font-bold text-on-surface-variant">{shoppingItems} items</span>
               </div>
               <input
+                id="carbon-shopping-items"
                 type="range" min="0" max="5" step="1"
                 value={shoppingItems} onChange={(e) => setShoppingItems(Number(e.target.value))}
                 className="w-full accent-outline"

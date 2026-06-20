@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 // tests/integration/userJourney.test.ts
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -57,6 +57,12 @@ describe('User Journey Integration Tests', () => {
 
   afterAll(() => {
     server.close();
+  });
+
+  beforeEach(() => {
+    useSustainlyStore.getState().resetAllData();
+    localStorage.clear();
+    window.history.pushState({}, '', '/');
   });
 
   it('should complete full user journey: login → log action → view impact', async () => {

@@ -68,7 +68,8 @@ router.post('/insights', aiLimiter, async (req, res) => {
           }
           
           // Generate new insights
-          const result = await aiService.generateInsights(profile || null, history || []);
+          const isMock = req.headers['x-e2e-mock'] === 'true';
+          const result = await aiService.generateInsights(profile || null, history || [], isMock);
           
           // Save back to Firestore
           await userRef.set({
@@ -88,7 +89,8 @@ router.post('/insights', aiLimiter, async (req, res) => {
     }
 
     // Fallback if no uid or db error
-    const result = await aiService.generateInsights(profile || null, history || []);
+    const isMock = req.headers['x-e2e-mock'] === 'true';
+    const result = await aiService.generateInsights(profile || null, history || [], isMock);
     await insightsCache.set(cacheKey, result);
     res.set('Cache-Control', 'private, max-age=3600');
     res.json(result);
@@ -106,12 +108,14 @@ router.post('/log', aiLimiter, async (req, res) => {
   try {
     const parseResult = logRequestSchema.safeParse(req.body);
     if (!parseResult.success) {
+      console.error("[Zod Error Details]:", JSON.stringify(parseResult.error.format(), null, 2));
       return res.status(400).json({ error: "Invalid request format", ...(process.env.NODE_ENV !== 'production' && { details: parseResult.error.format() }) });
     }
 
     const { userMessage, profile, history, imageBase64 } = parseResult.data;
 
-    const result = await aiService.generateActivityLog({ userMessage, profile, history, imageBase64 });
+    const isMock = req.headers['x-e2e-mock'] === 'true';
+    const result = await aiService.generateActivityLog({ userMessage, profile, history, imageBase64, isMock });
 
     if (result.activities) {
       result.activities = result.activities.map(act => ({

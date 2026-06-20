@@ -27,7 +27,6 @@ export default function ChatLogger() {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (loading) {
-      setLoadingStep(0);
       interval = setInterval(() => {
         setLoadingStep(prev => (prev + 1) % 3);
       }, 2500);
@@ -46,15 +45,19 @@ export default function ChatLogger() {
     
     setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'user', content: userMsg || "📸 Sent an image" }]);
     setLoading(true);
+    setLoadingStep(0);
 
     try {
       const recentHistory = messages.slice(-20);
-      const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+      const token = auth.currentUser 
+        ? await auth.currentUser.getIdToken() 
+        : (typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__ ? 'test-token' : '');
       const response = await fetch('/api/log', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          ...(typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__ && { 'X-E2E-Mock': 'true' })
         },
         body: JSON.stringify({
           userMessage: userMsg,

@@ -11,6 +11,17 @@ export function useAuth() {
 
   useEffect(() => {
     let isMounted = true;
+    const isE2EMock = typeof window !== 'undefined' && (window as unknown as { __E2E_AUTH_MOCK__?: boolean }).__E2E_AUTH_MOCK__;
+    if (isE2EMock) {
+      Promise.resolve().then(() => {
+        if (isMounted) {
+          setUser({ displayName: 'Test User', uid: 'test-user-id' } as User);
+          setLoading(false);
+        }
+      });
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
       if (isMounted) {
         console.warn('Firebase auth check timed out. Proceeding to app...');

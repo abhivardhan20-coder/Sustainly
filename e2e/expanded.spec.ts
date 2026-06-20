@@ -3,6 +3,9 @@ import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Expanded E2E Flows', () => {
   test('Login Page Accessibility and Visibility', async ({ page }) => {
+    // Navigate to app first to get correct origin, clear localStorage, and reload
+    await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     

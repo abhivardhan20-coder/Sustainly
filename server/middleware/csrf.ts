@@ -5,7 +5,7 @@ import { randomBytes } from 'crypto';
 export function generateCsrfToken(req: Request, res: Response) {
   const token = randomBytes(32).toString('hex');
   res.cookie('csrf-token', token, {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 60 * 60 * 1000, // 1 hour

@@ -15,6 +15,10 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
+      if (typeof window !== 'undefined' && (window as any).__E2E_AUTH_MOCK__) {
+        navigate('/onboarding', { state: { name: 'Test User' } });
+        return;
+      }
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       if (result.user) {

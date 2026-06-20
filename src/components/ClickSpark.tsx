@@ -132,35 +132,48 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     };
   }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    const now = performance.now();
-    const newSparks = Array.from({ length: sparkCount }, (_, i) => ({
-      x,
-      y,
-      angle: (2 * Math.PI * i) / sparkCount,
-      startTime: now
-    }));
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-    sparksRef.current.push(...newSparks);
-  };
+    const handleNativeClick = (e: MouseEvent) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const now = performance.now();
+      const newSparks = Array.from({ length: sparkCount }, (_, i) => ({
+        x,
+        y,
+        angle: (2 * Math.PI * i) / sparkCount,
+        startTime: now
+      }));
+
+      sparksRef.current.push(...newSparks);
+    };
+
+    container.addEventListener('click', handleNativeClick);
+    return () => {
+      container.removeEventListener('click', handleNativeClick);
+    };
+  }, [sparkCount]);
 
   return (
     <div
+      ref={containerRef}
       style={{
         position: 'relative',
         width: '100%',
         height: '100%'
       }}
-      onClick={handleClick}
     >
       <canvas
         ref={canvasRef}
+        aria-hidden="true"
         style={{
           width: '100%',
           height: '100%',

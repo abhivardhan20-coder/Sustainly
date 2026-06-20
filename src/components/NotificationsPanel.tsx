@@ -89,19 +89,16 @@ function generateNotifications(store: ReturnType<typeof useSustainlyStore.getSta
 export default function NotificationsPanel() {
   const store = useSustainlyStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [hasUnread, setHasUnread] = useState(false);
+  const [lastViewedCount, setLastViewedCount] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const notifications = generateNotifications(store);
-
-  useEffect(() => {
-    setHasUnread(notifications.some(n => n.unread));
-  }, [notifications.length]);
+  const hasUnread = notifications.some(n => n.unread) && notifications.length > lastViewedCount;
 
   const togglePanel = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
-      setHasUnread(false);
+      setLastViewedCount(notifications.length);
     }
   };
 

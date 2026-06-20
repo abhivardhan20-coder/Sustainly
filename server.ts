@@ -10,7 +10,7 @@ import apiRoutes from './server/routes/api';
 import carbonRoutes from './server/routes/carbon';
 import { logger } from './server/utils/logger';
 import cookieParser from 'cookie-parser';
-import { csrfTokenMiddleware } from './server/middleware/csrf';
+import { csrfTokenMiddleware, generateCsrfToken } from './server/middleware/csrf';
 import "dotenv/config";
 
 export const app = express();
@@ -86,6 +86,14 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ limit: '1mb', extended: true }));
 app.use(cookieParser());
+
+// Generate CSRF token for all GET requests to initialize the cookie
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.cookies['csrf-token']) {
+    generateCsrfToken(req, res);
+  }
+  next();
+});
 
 // Mount modular API routes
 app.use('/api', csrfTokenMiddleware, apiRoutes);
